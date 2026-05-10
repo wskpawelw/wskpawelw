@@ -1,0 +1,85 @@
+# === SEKRETY (NIGDY NIE COMMITUJ) ===
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+*credential*
+*secret*
+*password*
+*.token
+auth.json
+service-account*.json
+~/.config/
+
+# === WSK SPECIFIC ===
+# Vault Obsidian (synchronizowany przez Syncthing)
+WSK_Wiedza/
+**/WSK_Wiedza/
+
+# Snapshoty ERP-BUD (zawierają dane finansowe)
+snapshot_*.json
+snapshots/
+*.snapshot
+
+# n8n raw exports (musi przejść przez sanitize-n8n.sh)
+*.workflow.raw.json
+n8n-export-raw/
+
+# Klucze WhatsApp/Telegram/Evolution
+evolution_*.json
+telegram_*.token
+whatsapp_session/
+
+# Klucze Cloudflare/Supabase/Gemini
+cf_token*
+sb_*.json
+gemini_*.key
+
+# === STANDARD ===
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+dist/
+build/
+.next/
+.nuxt/
+.cache/
+*.log
+npm-debug.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# OS
+.directory
+*~
+
+# Logi i stany
+*.log
+*.pid
+*.sock
+logs/
+tmp/
+.local-state/
+
+# SQLite (n8n DB)
+*.db
+*.sqlite
+*.sqlite3
+n8n.db*
