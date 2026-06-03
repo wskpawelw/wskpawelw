@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="pl"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>WSK · Analizator Dokumentacji Przetargowej</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<script>
+tailwind.config={darkMode:"class",theme:{extend:{
+ colors:{
+  "error":"#ba1a1a","surface-container-highest":"#e0e3e5","inverse-surface":"#2d3133",
+  "surface-container":"#eceef0","surface-container-lowest":"#ffffff","surface-bright":"#f7f9fb",
+  "secondary-container":"#2170e4","on-surface":"#191c1e","surface-container-low":"#f2f4f6",
+  "outline":"#76777d","on-surface-variant":"#45464d","outline-variant":"#c6c6cd",
+  "secondary-fixed-dim":"#adc6ff","on-secondary-fixed-variant":"#004395","background":"#f7f9fb",
+  "primary":"#0d2b4e","on-secondary":"#ffffff","secondary":"#0058be","surface-container-high":"#e6e8ea",
+  "surface":"#ffffff","surface-variant":"#e0e3e5","error-container":"#ffdad6","on-error-container":"#93000a",
+  "tertiary":"#0f7a4d","tertiary-container":"#c7f3dc","on-tertiary-container":"#00391f",
+  "wsk-orange":"#d35400","on-secondary-fixed":"#001a42"
+ },
+ fontFamily:{sans:["Inter","sans-serif"]},
+ borderRadius:{"DEFAULT":"0.5rem","lg":"0.75rem","xl":"1rem","2xl":"1.25rem"},
+ boxShadow:{ambient:"0px 4px 6px -1px rgba(15,23,42,0.06)"}
+}}}
+</script>
+<style>
+ body{font-family:'Inter',sans-serif}
+ .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;vertical-align:middle}
+ .ms-fill{font-variation-settings:'FILL' 1}
+ .navlink.active{background:#2170e4;color:#fff;font-weight:600}
+ .navlink.active .material-symbols-outlined{font-variation-settings:'FILL' 1}
+ ::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:#c6c6cd;border-radius:8px}
+ .fade{animation:f .35s ease}@keyframes f{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+ .tnum{font-variant-numeric:tabular-nums;font-feature-settings:'tnum'}
+ .dtable tbody tr:nth-child(even){background:#fafbfc}
+ .dtable tbody tr:hover{background:#eef4ff}
+ .dtable thead th{position:sticky;top:0;background:#f2f4f6;z-index:1}
+ .dtable td,.dtable th{border-bottom:1px solid #eceef0}
+ .pill{display:inline-flex;align-items:center;font-weight:700;font-size:11px;padding:2px 8px;border-radius:9999px;line-height:1.4}
+</style>
+</head>
+<body class="bg-background text-on-surface min-h-screen">
+
+<!-- SIDEBAR -->
+<nav class="bg-surface border-r border-outline-variant flex flex-col h-screen fixed left-0 top-0 w-64 px-4 py-6 z-30 hidden md:flex">
+ <div class="mb-8 px-1">
+  <svg viewBox="95 195 260 115" class="w-44 h-auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="WS Konsorcjum"><path d="M 122.605469 203.15625 L 102.152344 220.464844 L 102.152344 255.933594 L 122.605469 260.464844 Z" fill="#4a7fd4"/>
+<path d="M 123.800781 199.414062 L 123.769531 201.4375 L 144.292969 220.371094 L 144.148438 256.628906 L 127.058594 260.988281 L 162.117188 260.988281 L 162.117188 199.414062 Z" fill="#4a7fd4"/>
+<path d="M 136.40625 203.234375 L 162.117188 203.234375 L 162.117188 206.605469 L 136.40625 206.605469 Z" fill="white"/>
+<path d="M 150.1875 201.0625 L 157.003906 201.0625 L 157.003906 260.988281 L 150.1875 260.988281 Z" fill="white"/>
+<path d="M 138.726562 206.605469 L 140.457031 206.605469 L 140.457031 216.433594 L 138.714844 214.867188 Z" fill="white"/>
+<path d="M 123.765625 260.464844 L 123.742188 203.15625 L 143.054688 220.402344 L 142.941406 256.074219 Z" fill="rgb(94.90%, 36.08%, 9.80%)"/>
+<path d="M 116.515625 212.402344 L 120.554688 209.21875 L 120.554688 218.84375 L 116.515625 221.117188 Z" fill="white"/>
+<path d="M 111.617188 216.140625 L 114.835938 213.648438 L 114.84375 222.054688 L 111.617188 223.871094 Z" fill="white"/>
+<path d="M 107.671875 219.199219 L 110.449219 217.046875 L 110.472656 224.515625 L 107.675781 226.089844 Z" fill="white"/>
+<path d="M 103.773438 222.214844 L 106.371094 220.203125 L 106.359375 226.828125 L 103.773438 228.28125 Z" fill="white"/>
+<path d="M 116.507812 223.632812 L 120.554688 221.492188 L 120.554688 230.867188 L 116.515625 232.34375 Z" fill="white"/>
+<path d="M 111.636719 226.144531 L 114.875 224.472656 L 114.871094 232.949219 L 111.710938 234.105469 Z" fill="white"/>
+<path d="M 107.671875 228.179688 L 110.453125 226.757812 L 110.445312 234.566406 L 107.671875 235.582031 Z" fill="white"/>
+<path d="M 103.773438 230.203125 L 106.359375 228.867188 L 106.363281 236.0625 L 103.773438 237.007812 Z" fill="white"/>
+<path d="M 116.496094 235.453125 L 120.554688 234.199219 L 120.554688 243.824219 L 116.515625 244.449219 Z" fill="white"/>
+<path d="M 111.613281 236.964844 L 114.871094 235.957031 L 114.875 244.703125 L 111.613281 245.203125 Z" fill="white"/>
+<path d="M 107.671875 238.183594 L 110.449219 237.324219 L 110.460938 245.382812 L 107.671875 245.8125 Z" fill="white"/>
+<path d="M 103.773438 239.386719 L 106.359375 238.589844 L 106.363281 246.015625 L 103.773438 246.414062 Z" fill="white"/>
+<path d="M 116.515625 247.449219 L 120.554688 247.160156 L 120.554688 257.570312 L 116.515625 256.929688 Z" fill="white"/>
+<path d="M 111.613281 247.796875 L 114.871094 247.566406 L 114.871094 256.667969 L 111.652344 256.160156 Z" fill="white"/>
+<path d="M 107.660156 248.082031 L 110.445312 247.882812 L 110.449219 255.96875 L 107.667969 255.53125 Z" fill="white"/>
+<path d="M 103.773438 248.359375 L 106.363281 248.171875 L 106.359375 255.328125 L 103.773438 254.914062 Z" fill="white"/>
+<path d="M 238.179688 206.996094 L 226.601562 260.003906 L 211.347656 260.003906 L 201.863281 219.371094 L 193.167969 260.003906 L 178.359375 260.003906 L 165.550781 206.996094 L 177.640625 206.996094 L 187.132812 244.953125 L 195.824219 206.996094 L 208.210938 206.996094 L 217.175781 245.726562 L 226.082031 206.996094 Z" fill="rgb(94.90%, 36.08%, 9.80%)"/>
+<path d="M 246.011719 256.914062 L 246.050781 245.539062 C 247.296875 246.828125 249.667969 248.109375 252.507812 249.136719 C 255.433594 250.195312 258.859375 250.980469 262.054688 251.222656 C 264.460938 251.40625 266.738281 251.28125 268.582031 250.742188 C 269.800781 250.382812 270.839844 249.847656 271.585938 249.082031 C 274.414062 246.164062 273.773438 243.796875 271.71875 241.53125 C 264.992188 234.105469 245.507812 242.226562 245.507812 222.574219 C 245.507812 217.863281 247.296875 214.246094 251.3125 211.292969 C 255.339844 208.332031 258.953125 207.085938 265.277344 207.085938 C 271.722656 207.085938 276.207031 207.835938 281.875 210.191406 L 281.875 220.710938 C 279.613281 219.824219 276.625 215.355469 267.378906 215.5625 C 264.410156 215.628906 261.96875 216.113281 260.039062 217.222656 C 258.117188 218.328125 257.164062 219.824219 257.164062 221.746094 C 257.164062 223.371094 257.707031 224.679688 258.800781 225.644531 C 259.898438 226.609375 261.746094 227.46875 264.410156 228.023438 C 267.046875 228.574219 270.003906 229.140625 273.253906 229.933594 C 276.519531 230.730469 277.222656 231.316406 278.824219 232.308594 C 280.414062 233.292969 281.699219 234.378906 282.652344 235.535156 C 283.605469 236.699219 284.3125 237.996094 284.796875 239.421875 C 285.265625 240.847656 285.503906 242.425781 285.503906 244.144531 C 285.503906 249.210938 283.429688 253.285156 279.308594 256.359375 C 275.171875 259.445312 269.707031 260.988281 262.898438 260.988281 C 256.265625 260.988281 252.386719 259.636719 246.011719 256.914062" fill="rgb(94.90%, 36.08%, 9.80%)"/>
+<path d="M 343.144531 260.003906 L 327.859375 260.003906 L 307.304688 239.144531 L 307.289062 242.523438 L 307.289062 260.003906 L 294.398438 260.003906 L 294.398438 206.996094 L 307.507812 206.996094 L 307.507812 226.566406 L 326.667969 206.507812 L 340.886719 206.507812 L 316.367188 231.84375 Z" fill="rgb(94.90%, 36.08%, 9.80%)"/>
+<path d="M 142.449219 295.953125 L 135.910156 295.953125 L 130.558594 287.5625 L 128.828125 289.085938 L 128.828125 295.925781 L 123.015625 295.925781 L 123.015625 267.992188 L 128.835938 267.992188 L 128.828125 285.304688 L 128.902344 285.304688 L 134.972656 276.863281 L 140.714844 276.863281 L 134.5625 284.726562 Z" fill="#6b9fd4"/>
+<path d="M 144.882812 286.3125 C 144.882812 283.171875 145.804688 280.703125 147.640625 278.914062 C 149.484375 277.121094 151.957031 276.226562 155.0625 276.226562 C 158.0625 276.226562 160.445312 277.105469 162.214844 278.867188 C 163.980469 280.632812 164.863281 283.003906 164.863281 285.984375 C 164.863281 289.109375 163.957031 291.597656 162.144531 293.449219 C 160.335938 295.300781 157.882812 296.226562 154.789062 296.226562 C 151.753906 296.226562 149.339844 295.335938 147.5625 293.558594 C 145.777344 291.789062 144.882812 289.367188 144.882812 286.3125 Z M 150.402344 286.242188 C 150.402344 290.046875 151.921875 291.953125 154.957031 291.953125 C 157.871094 291.953125 159.328125 290 159.328125 286.085938 C 159.328125 282.363281 157.859375 280.496094 154.921875 280.496094 C 153.492188 280.496094 152.386719 281 151.59375 282 C 150.796875 283 150.402344 284.414062 150.402344 286.242188" fill="#6b9fd4"/>
+<path d="M 189.4375 295.984375 L 183.703125 295.984375 L 183.703125 285.207031 C 183.703125 282.019531 182.558594 280.421875 180.261719 280.421875 C 179.164062 280.421875 178.257812 280.851562 177.53125 281.703125 C 176.808594 282.550781 176.441406 283.640625 176.441406 284.957031 L 176.441406 295.984375 L 170.675781 295.984375 L 170.675781 276.480469 L 176.441406 276.480469 L 176.441406 279.621094 L 176.511719 279.621094 C 177.953125 277.207031 180.074219 276 182.871094 276 C 187.246094 276 189.4375 278.710938 189.4375 284.140625 Z" fill="#6b9fd4"/>
+<path d="M 195.296875 290.578125 C 197.132812 291.75 198.925781 292.339844 200.683594 292.339844 C 202.898438 292.339844 204 291.714844 204 290.46875 C 204 289.589844 203.089844 288.851562 201.261719 288.253906 C 198.988281 287.511719 197.425781 286.683594 196.570312 285.773438 C 195.722656 284.855469 195.296875 283.625 195.296875 282.066406 C 195.296875 280.171875 196.027344 278.683594 197.480469 277.613281 C 198.941406 276.535156 200.855469 276 203.21875 276 C 204.902344 276 206.519531 276.261719 208.074219 276.777344 L 208.074219 281.214844 C 206.65625 280.328125 205.082031 279.886719 203.367188 279.886719 C 202.519531 279.886719 201.835938 280.046875 201.3125 280.367188 C 200.792969 280.683594 200.539062 281.105469 200.539062 281.628906 C 200.539062 282.511719 201.308594 283.226562 202.859375 283.773438 C 204.515625 284.355469 205.761719 284.886719 206.59375 285.363281 C 207.429688 285.839844 208.0625 286.464844 208.5 287.242188 C 208.9375 288.023438 209.15625 288.929688 209.15625 289.945312 C 209.15625 291.933594 208.398438 293.480469 206.886719 294.578125 C 205.371094 295.679688 203.351562 296.226562 200.816406 296.226562 C 198.828125 296.226562 196.988281 295.894531 195.296875 295.230469 Z" fill="#6b9fd4"/>
+<path d="M 213.769531 286.3125 C 213.769531 283.171875 214.710938 280.703125 216.589844 278.914062 C 218.472656 277.121094 220.996094 276.226562 224.167969 276.226562 C 227.238281 276.226562 229.671875 277.109375 231.480469 278.867188 C 233.289062 280.632812 234.1875 283.003906 234.1875 285.984375 C 234.1875 289.109375 233.265625 291.597656 231.410156 293.449219 C 229.5625 295.300781 227.054688 296.226562 223.894531 296.226562 C 220.789062 296.226562 218.324219 295.335938 216.503906 293.558594 C 214.679688 291.789062 213.769531 289.367188 213.769531 286.3125 Z M 219.40625 286.242188 C 219.40625 290.046875 220.960938 291.953125 224.0625 291.953125 C 227.042969 291.953125 228.53125 290 228.53125 286.085938 C 228.53125 282.363281 227.03125 280.5 224.027344 280.5 C 222.570312 280.5 221.4375 281 220.625 282 C 219.8125 283 219.40625 284.414062 219.40625 286.242188" fill="#6b9fd4"/>
+<path d="M 251.464844 281.222656 C 250.757812 280.816406 250.664062 280.820312 249.65625 280.820312 C 248.332031 280.820312 247.289062 281.324219 246.511719 282.332031 C 245.738281 283.339844 245.351562 284.726562 245.351562 286.492188 L 245.351562 295.898438 L 239.527344 295.898438 L 239.527344 276.148438 L 245.351562 276.148438 L 245.351562 279.894531 L 245.421875 279.894531 C 246.382812 277.171875 248.132812 275.804688 250.664062 275.804688 C 251.355469 275.804688 251.109375 275.679688 251.464844 275.832031 Z" fill="#6b9fd4"/>
+<path d="M 270.710938 295.089844 C 269.359375 295.886719 268.09375 296.277344 265.597656 296.277344 C 262.644531 296.277344 260.261719 295.382812 258.441406 293.585938 C 256.628906 291.789062 255.714844 289.464844 255.714844 286.609375 C 255.714844 283.324219 256.695312 280.730469 258.652344 278.839844 C 260.613281 276.941406 263.222656 276 266.488281 276 C 268.6875 276 269.671875 276.296875 270.726562 276.90625 L 270.726562 281.339844 C 268.558594 279.742188 264.90625 279.980469 263 281.90625 C 261.957031 282.957031 261.433594 284.398438 261.433594 286.230469 C 261.433594 287.996094 261.925781 289.390625 262.917969 290.414062 C 263.910156 291.433594 265.257812 291.945312 266.957031 291.945312 C 268.460938 291.945312 269.277344 291.761719 270.710938 290.808594 Z" fill="#6b9fd4"/>
+<path d="M 282.589844 294.539062 C 282.589844 297.539062 281.882812 299.828125 280.476562 301.410156 C 279.488281 302.515625 278.1875 303.238281 276.566406 303.574219 C 275.863281 303.71875 275.101562 303.789062 274.277344 303.789062 C 273.40625 303.789062 273.425781 303.871094 272.375 303.507812 L 272.375 299.132812 C 275.8125 299.964844 276.789062 297.414062 276.789062 294.972656 L 276.789062 276.019531 L 282.589844 276.019531 Z" fill="#6b9fd4"/>
+<path d="M 276.351562 270.667969 C 276.351562 269.824219 276.667969 269.140625 277.300781 268.609375 C 277.933594 268.078125 278.738281 267.816406 279.722656 267.816406 C 280.734375 267.816406 281.550781 268.085938 282.179688 268.625 C 282.800781 269.167969 283.113281 269.847656 283.113281 270.667969 C 283.113281 271.496094 282.792969 272.191406 282.160156 272.746094 C 281.519531 273.300781 280.707031 273.574219 279.722656 273.574219 C 278.753906 273.574219 277.945312 273.292969 277.304688 272.734375 C 276.671875 272.179688 276.351562 271.484375 276.351562 270.667969" fill="#6b9fd4"/>
+<path d="M 308.421875 296.160156 L 302.640625 296.160156 L 302.695312 292.570312 L 302.601562 292.570312 C 301.113281 294.929688 299.113281 295.972656 296.53125 295.972656 C 291.890625 295.972656 289.953125 293.972656 289.953125 288.375 L 289.953125 276.351562 L 295.300781 276.226562 L 295.300781 287.707031 C 295.300781 290.683594 296.46875 292.179688 298.800781 292.179688 C 299.960938 292.179688 300.890625 291.765625 301.59375 290.949219 C 302.289062 290.136719 302.640625 289.027344 302.640625 287.632812 L 302.640625 276.226562 L 308.421875 276.226562 Z" fill="#6b9fd4"/>
+<path d="M 343.597656 296.003906 L 338.246094 296.003906 L 338.246094 284.699219 C 338.246094 281.886719 337.226562 280.480469 335.175781 280.480469 C 334.222656 280.480469 333.433594 280.90625 332.800781 281.761719 C 332.171875 282.613281 331.851562 283.65625 331.851562 284.886719 L 331.851562 296.003906 L 326.507812 296.003906 L 326.507812 284.566406 C 326.507812 281.839844 325.492188 280.480469 323.46875 280.480469 C 322.460938 280.480469 321.660156 280.890625 321.054688 281.707031 C 320.453125 282.519531 320.148438 283.59375 320.148438 284.929688 L 320.148438 296.003906 L 314.785156 296.003906 L 314.785156 276.8125 L 320.148438 276.8125 L 320.148438 279.6875 L 320.21875 279.6875 C 320.855469 278.632812 321.707031 277.816406 322.773438 277.234375 C 323.832031 276.65625 324.957031 276.367188 326.128906 276.367188 C 328.707031 276.367188 330.46875 277.523438 331.421875 279.835938 C 332.839844 277.523438 334.898438 276.367188 337.601562 276.367188 C 341.597656 276.367188 343.597656 278.832031 343.597656 283.769531 Z" fill="#6b9fd4"/></svg>
+  <p class="text-[11px] text-on-surface-variant font-medium mt-2 px-1">Platforma przetargowa</p>
+ </div>
+ <ul class="flex flex-col gap-1 flex-grow" id="nav">
+  <li><a data-view="pulpit"  class="navlink flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition"><span class="material-symbols-outlined">dashboard</span><span class="text-sm">Pulpit</span></a></li>
+  <li><a data-view="przetargi" class="navlink flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition"><span class="material-symbols-outlined">fact_check</span><span class="text-sm">Audyty</span></a></li>
+  <li><a data-view="nowa"     class="navlink flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition"><span class="material-symbols-outlined">add_circle</span><span class="text-sm">Nowa analiza</span></a></li>
+  <li><a data-view="raporty"  class="navlink flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition"><span class="material-symbols-outlined">assessment</span><span class="text-sm">Raporty</span></a></li>
+  <li class="px-3 pt-4 pb-1 text-[10px] uppercase tracking-wider text-on-surface-variant font-bold">Platforma</li>
+  <li><a data-view="postepowania" class="navlink flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition"><span class="material-symbols-outlined">description</span><span class="text-sm">Przetargi</span></a></li>
+  <li><a data-view="drive" class="navlink flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition"><span class="material-symbols-outlined">cloud</span><span class="text-sm">Google Drive</span></a></li>
+  <li><a data-view="podwykonawcy" class="navlink flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition"><span class="material-symbols-outlined">groups</span><span class="text-sm">Podwykonawcy</span></a></li>
+  <li><a data-view="materialy" class="navlink flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition"><span class="material-symbols-outlined">inventory_2</span><span class="text-sm">Materiały</span></a></li>
+ </ul>
+ <div class="mt-auto border-t border-outline-variant pt-4 space-y-1">
+  <a href="/" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition">
+   <span class="material-symbols-outlined">grid_view</span><span class="text-sm">Reszta platformy</span></a>
+  <a href="/login" onclick="['token','access_token'].forEach(k=>{localStorage.removeItem(k);sessionStorage.removeItem(k)})" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition">
+   <span class="material-symbols-outlined">logout</span><span class="text-sm">Wyloguj</span></a>
+  <div class="flex items-center gap-2 px-3 py-2 text-xs text-on-surface-variant">
+   <span class="material-symbols-outlined text-tertiary text-[18px] ms-fill">verified_user</span>
+   Dane poufne · tylko WSK
+  </div>
+ </div>
+</nav>
+
+<!-- MAIN WRAPPER -->
+<div class="md:ml-64 flex flex-col min-h-screen">
+ <!-- TOPBAR -->
+ <header class="bg-surface border-b border-outline-variant flex justify-between items-center h-16 px-4 md:px-8 sticky top-0 z-20">
+  <div class="flex items-center gap-3 flex-1">
+   <button class="md:hidden text-on-surface" onclick="document.querySelector('nav').classList.toggle('hidden')"><span class="material-symbols-outlined">menu</span></button>
+   <div class="relative w-full max-w-md hidden sm:block">
+    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
+    <input id="search" oninput="onSearch()" placeholder="Szukaj przetargu, materiału…" class="w-full bg-surface-container-low border border-outline-variant rounded-lg pl-10 pr-4 py-1.5 text-sm focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"/>
+   </div>
+  </div>
+  <div class="hidden lg:block text-base font-bold text-primary absolute left-1/2 -translate-x-1/2">Portal Analiz Przetargowych</div>
+  <div class="flex items-center gap-2">
+   <button onclick="go('nowa')" class="flex items-center gap-2 px-3 py-1.5 bg-secondary text-white rounded-lg text-sm font-medium hover:bg-on-secondary-fixed-variant transition shadow-ambient">
+    <span class="material-symbols-outlined text-[18px]">add</span><span class="hidden sm:inline">Nowa analiza</span></button>
+   <div class="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm">PW</div>
+  </div>
+ </header>
+
+ <main id="app" class="flex-1 p-4 md:p-8"></main>
+</div>
+
+<script>
+const $=(s,r=document)=>r.querySelector(s);
+const API='/api/analizator';
+function findToken(){
+ for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);const v=localStorage.getItem(k);
+  if(v&&/^eyJ[\w-]+\.[\w-]+\.[\w-]+$/.test(v))return v;
+  try{const o=JSON.parse(v);for(const kk in o){if(typeof o[kk]==='string'&&/^eyJ[\w-]+\.[\w-]+\.[\w-]+$/.test(o[kk]))return o[kk];}}catch(e){}
+ }
+ for(let i=0;i<sessionStorage.length;i++){const v=sessionStorage.getItem(sessionStorage.key(i));if(v&&/^eyJ[\w-]+\.[\w-]+\.[\w-]+$/.test(v))return v;}
+ return null;
+}
+const TOKEN=findToken();
+if(!TOKEN){location.href='/login';}
+const _fetch=window.fetch.bind(window);
+window.fetch=(u,o)=>{o=o||{};if(typeof u==='string'&&u.indexOf('/api/')===0){o.headers=Object.assign({},o.headers,{Authorization:'Bearer '+TOKEN});}return _fetch(u,o);};
+const fmtMln=v=> (v||v===0)? (v/1e6).toFixed(2).replace('.',',')+' mln':'—';
+const fmtPLN=v=> (v||v===0)? Math.round(v).toLocaleString('pl-PL')+' zł':'—';
+let AUDITS=[]; let CHARTS=[];
+function killCharts(){CHARTS.forEach(c=>{try{c.destroy()}catch(e){}});CHARTS=[]}
+const SEV={KRYTYCZNA:'#dc2626',WYSOKA:'#ea580c',SREDNIA:'#d97706','ŚREDNIA':'#d97706',NISKA:'#65a30d'};
+const SEV_ICON={KRYTYCZNA:'dangerous',WYSOKA:'error',SREDNIA:'warning','ŚREDNIA':'warning',NISKA:'info'};
+const SEV_ORDER={KRYTYCZNA:0,WYSOKA:1,SREDNIA:2,'ŚREDNIA':2,NISKA:3};
+const ST={OK:'#16a34a','DOPYTAĆ':'#d97706',DOPYTAC:'#d97706',KRYTYCZNA:'#dc2626',BRAK_W_PRZEDMIARZE:'#2563eb','ROZBIEŻNOŚĆ':'#db2777',ROZBIEZNOSC:'#db2777'};
+const esc=s=>(s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+async function loadAudits(){ AUDITS=await (await fetch(API+'/audits')).json(); }
+
+// ---------------- router
+const VIEWS={};
+function setActive(v){document.querySelectorAll('.navlink').forEach(a=>a.classList.toggle('active',a.dataset.view===v));}
+async function go(view,arg){
+ killCharts(); setActive(view); location.hash=view+(arg?('/'+arg):'');
+ const app=$('#app'); app.innerHTML='<div class="text-on-surface-variant text-sm py-20 text-center">Ładowanie…</div>';
+ try{ await VIEWS[view](app,arg); app.firstElementChild&&app.firstElementChild.classList.add('fade'); }
+ catch(e){ app.innerHTML='<div class="text-error p-6">Błąd: '+esc(e.message)+'</div>'; }
+}
+document.querySelectorAll('.navlink').forEach(a=>a.onclick=e=>{e.preventDefault();go(a.dataset.view)});
+function onSearch(){ if(location.hash.startsWith('#przetargi')||!location.hash) renderList(); }
+
+// ================= PULPIT
+VIEWS.pulpit=async(app)=>{
+ if(!AUDITS.length) await loadAudits();
+ const total=AUDITS.reduce((s,a)=>s+(a.netto_do||a.netto_od||0),0);
+ const bid=AUDITS.filter(a=>a.bid).length;
+ const risks=AUDITS.reduce((s,a)=>s+a.risks,0);
+ const krit=AUDITS.reduce((s,a)=>s+a.krit,0);
+ app.innerHTML=`
+ <div class="mb-6">
+  <p class="text-sm text-secondary font-semibold uppercase tracking-wider">Pulpit</p>
+  <h2 class="text-3xl font-extrabold text-primary">Przegląd postępowań</h2>
+  <p class="text-on-surface-variant">Automatyczny audyt techniczny, kosztowy i prawny dokumentacji przetargowej.</p>
+ </div>
+ <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  ${kpi('folder_open','Przeanalizowane',AUDITS.length,'postępowań','#0058be')}
+  ${kpi('payments','Łączna wartość',fmtMln(total),'szac. netto (górne widełki)','#0d2b4e')}
+  ${kpi('thumb_up','Rekomendacja: składać',bid,'z '+AUDITS.length+' postępowań','#0f7a4d')}
+  ${kpi('warning','Ryzyka',risks,krit+' krytycznych','#d35400')}
+ </div>
+ <div class="grid lg:grid-cols-3 gap-6">
+  <section class="lg:col-span-2 bg-surface border border-outline-variant rounded-xl p-5 shadow-ambient">
+   <h3 class="font-bold text-primary mb-4">Wartość szacunkowa wg postępowania (mln zł netto)</h3>
+   <canvas id="c-val" height="120"></canvas></section>
+  <section class="bg-surface border border-outline-variant rounded-xl p-5 shadow-ambient">
+   <h3 class="font-bold text-primary mb-4">Rekomendacje</h3>
+   <canvas id="c-rek" height="180"></canvas></section>
+ </div>
+ <section class="mt-6">
+  <div class="flex items-center justify-between mb-3"><h3 class="font-bold text-primary text-lg">Ostatnie analizy</h3>
+   <button onclick="go('przetargi')" class="text-secondary text-sm font-semibold hover:underline">Wszystkie →</button></div>
+  <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4">${AUDITS.slice(0,6).map(card).join('')}</div>
+ </section>`;
+ // charts
+ const top=[...AUDITS].sort((a,b)=>(b.netto_do||0)-(a.netto_do||0)).slice(0,8);
+ CHARTS.push(new Chart($('#c-val'),{type:'bar',data:{labels:top.map(a=>shortName(a.project)),
+  datasets:[{label:'od',data:top.map(a=>(a.netto_od||0)/1e6),backgroundColor:'#adc6ff'},
+            {label:'do',data:top.map(a=>(a.netto_do||0)/1e6),backgroundColor:'#0058be'}]},
+  options:{plugins:{legend:{position:'bottom'}},scales:{y:{ticks:{callback:v=>v+' mln'}}}}}));
+ CHARTS.push(new Chart($('#c-rek'),{type:'doughnut',data:{labels:['Składać','Decyzja/odpuścić'],
+  datasets:[{data:[bid,AUDITS.length-bid],backgroundColor:['#0f7a4d','#d35400']}]},
+  options:{plugins:{legend:{position:'bottom'}}}}));
+};
+function kpi(icon,label,val,sub,color){return `
+ <div class="bg-surface border border-outline-variant rounded-xl p-4 shadow-ambient">
+  <div class="flex items-center justify-between"><span class="text-xs uppercase tracking-wider text-on-surface-variant font-semibold">${label}</span>
+   <span class="material-symbols-outlined" style="color:${color}">${icon}</span></div>
+  <div class="text-2xl font-extrabold text-primary mt-2">${val}</div>
+  <div class="text-xs text-on-surface-variant">${sub}</div></div>`;}
+function shortName(s){s=s.replace(/^AUDYT[_ ]*/i,'');return s.length>22?s.slice(0,22)+'…':s;}
+function card(a){const c=a.bid?'#0f7a4d':'#d35400';return `
+ <a onclick="go('analiza','${a.id}')" class="block bg-surface border border-outline-variant rounded-xl shadow-ambient hover:shadow-lg hover:border-secondary transition cursor-pointer overflow-hidden">
+  <div style="height:5px;background:${c}"></div>
+  <div class="p-4">
+   <div class="flex items-start justify-between gap-2">
+    <h4 class="font-bold text-primary leading-snug text-sm">${esc(shortName(a.project))}</h4>
+    <span class="text-[10px] font-extrabold px-2 py-0.5 rounded text-white whitespace-nowrap" style="background:${c}">${a.bid?'SKŁADAĆ':'DECYZJA'}</span></div>
+   <div class="text-xl font-extrabold text-primary mt-2">${fmtMln(a.netto_od)}${a.netto_do?' – '+fmtMln(a.netto_do):''}</div>
+   <div class="text-[11px] text-on-surface-variant">wartość szacunkowa netto</div>
+   <div class="flex gap-3 mt-3 pt-3 border-t border-outline-variant text-[11px] text-on-surface-variant">
+    <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">inventory_2</span>${a.mat_count} mat.</span>
+    <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]" style="color:#d35400">warning</span>${a.risks}${a.krit?' · '+a.krit+' kryt.':''}</span>
+    ${a.termin?'<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">event</span>'+esc(a.termin)+'</span>':''}
+   </div></div></a>`;}
+
+// ================= PRZETARGI (lista + filtry)
+VIEWS.przetargi=async(app)=>{
+ if(!AUDITS.length) await loadAudits();
+ app.innerHTML=`
+ <div class="mb-6"><p class="text-sm text-secondary font-semibold uppercase tracking-wider">Przetargi</p>
+  <h2 class="text-3xl font-extrabold text-primary">Lista przeanalizowanych postępowań</h2></div>
+ <div class="flex flex-col xl:flex-row gap-6">
+  <aside class="w-full xl:w-64 shrink-0 bg-surface border border-outline-variant rounded-xl p-5 shadow-ambient h-fit">
+   <div class="flex justify-between items-center mb-4"><h3 class="font-bold text-primary">Filtry</h3>
+    <button onclick="clearFilters()" class="text-xs text-secondary hover:underline">Wyczyść</button></div>
+   <label class="block text-xs font-semibold text-on-surface-variant mb-1">Rekomendacja</label>
+   <select id="f-rek" onchange="renderList()" class="w-full border border-outline-variant rounded-lg p-2 text-sm mb-4">
+    <option value="">Wszystkie</option><option value="bid">Tylko: składać</option><option value="nobid">Tylko: decyzja/odpuścić</option></select>
+   <label class="block text-xs font-semibold text-on-surface-variant mb-1">Sortowanie</label>
+   <select id="f-sort" onchange="renderList()" class="w-full border border-outline-variant rounded-lg p-2 text-sm mb-4">
+    <option value="mtime">Najnowsze</option><option value="val">Wartość malejąco</option><option value="risk">Ryzyka malejąco</option></select>
+   <label class="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" id="f-krit" onchange="renderList()" class="rounded border-outline-variant text-secondary">Tylko z ryzykiem krytycznym</label>
+  </aside>
+  <section class="flex-1 bg-surface border border-outline-variant rounded-xl shadow-ambient overflow-hidden">
+   <div class="p-5 border-b border-outline-variant flex justify-between items-center">
+    <div><h3 class="font-bold text-primary">Znalezione przetargi</h3><p id="count" class="text-sm text-on-surface-variant"></p></div></div>
+   <div class="overflow-x-auto"><table class="dtable w-full text-left text-sm">
+    <thead><tr class="text-[11px] uppercase tracking-wide text-on-surface-variant">
+     <th class="p-3 font-semibold">Tytuł postępowania</th><th class="p-3 font-semibold">Wartość netto</th><th class="p-3 font-semibold">Termin</th><th class="p-3 font-semibold text-center">Ryzyko AI</th><th class="p-3 font-semibold">Rekomendacja</th></tr></thead>
+    <tbody id="rows"></tbody></table></div></section></div>`;
+ renderList();
+};
+function clearFilters(){$('#f-rek').value='';$('#f-sort').value='mtime';$('#f-krit').checked=false;renderList();}
+function renderList(){
+ const rowsEl=$('#rows'); if(!rowsEl) return;
+ const q=($('#search')?.value||'').toLowerCase();
+ let list=AUDITS.filter(a=>!q||a.project.toLowerCase().includes(q)||(a.bzp||'').toLowerCase().includes(q));
+ const rek=$('#f-rek')?.value; if(rek==='bid')list=list.filter(a=>a.bid); if(rek==='nobid')list=list.filter(a=>!a.bid);
+ if($('#f-krit')?.checked)list=list.filter(a=>a.krit>0);
+ const sort=$('#f-sort')?.value;
+ if(sort==='val')list.sort((a,b)=>(b.netto_do||0)-(a.netto_do||0));
+ else if(sort==='risk')list.sort((a,b)=>b.risks-a.risks);
+ else list.sort((a,b)=>b.mtime-a.mtime);
+ $('#count').textContent='Wyświetlanie '+list.length+' z '+AUDITS.length+' wyników';
+ rowsEl.innerHTML=list.map(a=>{
+  const score=Math.min(99,a.risks*9+a.krit*18+8);
+  const sc=score>=60?['#ffdad6','#93000a']:score>=35?['#fde68a','#92400e']:['#c7f3dc','#00391f'];
+  return `<tr onclick="go('analiza','${a.id}')" class="border-b border-outline-variant hover:bg-surface-container-low cursor-pointer group">
+   <td class="p-3"><div class="font-medium text-on-surface group-hover:text-secondary">${esc(shortName(a.project))}</div>
+    <div class="text-xs text-on-surface-variant">${esc(a.bzp||'—')} · ${a.mat_count} materiałów</div></td>
+   <td class="p-3 font-semibold whitespace-nowrap tnum">${fmtMln(a.netto_od)}${a.netto_do?'–'+fmtMln(a.netto_do):''}</td>
+   <td class="p-3 whitespace-nowrap tnum text-on-surface-variant">${esc(a.termin||'—')}</td>
+   <td class="p-3 text-center"><span class="inline-flex items-center justify-center w-9 h-9 rounded-full text-xs font-bold tnum" style="background:${sc[0]};color:${sc[1]}">${score}</span></td>
+   <td class="p-3"><span class="pill ${a.bid?'bg-tertiary-container text-on-tertiary-container':'bg-error-container text-on-error-container'}">${a.bid?'Składać':'Decyzja'}</span></td></tr>`;
+ }).join('')||'<tr><td colspan="5" class="p-8 text-center text-on-surface-variant">Brak wyników.</td></tr>';
+}
+
+// ================= ANALIZA (detal — bento)
+VIEWS.analiza=async(app,id)=>{
+ if(!id){return go('przetargi');}
+ const d=await (await fetch(API+'/audit/'+id)).json();
+ if(d.error){app.innerHTML='<div class="p-6 text-error">'+esc(d.error)+'</div>';return;}
+ const v=d.value, m=d.meta; const bid=m.bid;
+ const nod=v.netto_od,ndo=v.netto_do;
+ const krit=d.risks.filter(r=>r.sev==='KRYTYCZNA').length;
+ const score=Math.min(99,d.risks.length*9+krit*18+8);
+ app.innerHTML=`
+ <div class="flex items-center gap-2 text-sm text-on-surface-variant mb-2">
+  <a onclick="go('przetargi')" class="hover:text-secondary cursor-pointer">Przetargi</a><span class="material-symbols-outlined text-[16px]">chevron_right</span>
+  <span class="text-on-surface">${esc(shortName(m.project))}</span></div>
+ <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-6">
+  <div><div class="flex items-center gap-2 mb-1">
+    <span class="text-xs font-semibold text-secondary bg-secondary/10 px-2 py-0.5 rounded uppercase">Postępowanie publiczne</span>
+    <span class="text-xs text-outline">${esc(m.bzp||'')}</span></div>
+   <h2 class="text-2xl md:text-3xl font-extrabold text-primary">${esc(shortName(m.project))}</h2></div>
+  <div class="flex gap-2">
+   <a href="#" onclick="dlExcel('${id}')" class="flex items-center gap-2 px-4 py-2 bg-surface border border-outline-variant rounded-lg text-sm hover:border-secondary transition"><span class="material-symbols-outlined text-[18px]">table_view</span>Plik Excel</a>
+   <div class="flex items-center gap-2 px-4 py-2 rounded-lg text-white font-semibold text-sm ${bid?'bg-tertiary':'bg-wsk-orange'}"><span class="material-symbols-outlined text-[18px] ms-fill">${bid?'thumb_up':'flag'}</span>${bid?'SKŁADAĆ':'DECYZJA'}</div>
+  </div></div>
+
+ <!-- KPI row -->
+ <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  <div class="rounded-xl p-5 text-white shadow-ambient" style="background:linear-gradient(135deg,#0d2b4e,#13386a)">
+   <div class="text-xs uppercase tracking-wider font-semibold text-secondary-fixed-dim">Wartość szacunkowa</div>
+   <div class="text-2xl font-extrabold mt-1">${fmtMln(nod)}${ndo?' – '+fmtMln(ndo):''}</div>
+   <div class="text-xs text-white/70">netto · brutto ${fmtMln(v.brutto_od)}${v.brutto_do?'–'+fmtMln(v.brutto_do):''}</div></div>
+  ${kpi('inventory_2','Materiały (M00)',fmtPLN(d.mat_total),d.materials.length+' pozycji','#0058be')}
+  ${kpi('warning','Ryzyka',d.risks.length,krit+' krytyczne','#d35400')}
+  ${kpi('event','Termin / wadium',esc(m.termin||'—'),'wadium '+esc(m.wadium||'—'),'#0d2b4e')}
+ </div>
+
+ <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+  <!-- lewa: zgodność + strcategia -->
+  <div class="lg:col-span-5 flex flex-col gap-6">
+   <div class="bg-surface border border-outline-variant rounded-xl p-6 shadow-ambient">
+    <div class="flex items-center gap-2 mb-4 border-b border-outline-variant pb-2">
+     <span class="material-symbols-outlined text-tertiary ms-fill">monitoring</span><h3 class="font-bold text-primary">Ocena ryzyka AI</h3></div>
+    <div class="flex items-end gap-4 mb-3"><span class="text-4xl font-extrabold" style="color:${score>=60?'#dc2626':score>=35?'#d97706':'#0f7a4d'}">${score}</span>
+     <span class="text-sm text-on-surface-variant mb-1">/100 · ${score>=60?'wysokie':score>=35?'umiarkowane':'niskie'} ryzyko</span></div>
+    <div class="w-full bg-surface-container rounded-full h-2 mb-4"><div class="h-2 rounded-full" style="width:${score}%;background:${score>=60?'#dc2626':score>=35?'#d97706':'#0f7a4d'}"></div></div>
+    <ul class="flex flex-col gap-2 text-sm">
+     <li class="flex items-start gap-2"><span class="material-symbols-outlined text-[18px] text-tertiary">inventory_2</span>Materiały skompletowane: <strong>${d.materials.length}</strong> pozycji (M00)</li>
+     <li class="flex items-start gap-2"><span class="material-symbols-outlined text-[18px] text-secondary">price_check</span>Wycena rynkowa: <strong>${nod?'widełki OD–DO':'do uzupełnienia'}</strong></li>
+     <li class="flex items-start gap-2"><span class="material-symbols-outlined text-[18px]" style="color:#d35400">flag</span>Ryzyka krytyczne: <strong>${krit}</strong></li>
+    </ul></div>
+
+   <div class="rounded-xl p-6 text-white shadow-ambient relative overflow-hidden" style="background:#0d2b4e">
+    <div class="flex items-center gap-2 mb-3 border-b border-white/20 pb-2">
+     <span class="material-symbols-outlined text-wsk-orange ms-fill">lightbulb</span><h3 class="font-bold">Rekomendacja strategiczna</h3></div>
+    <p class="text-sm text-white/90 leading-relaxed">${esc(m.rekomendacja||'Rekomendacja w arkuszu 01_STRESZCZENIE. Kliknij „Plik Excel" po pełną analizę 10 ekspertów.')}</p>
+    <div class="flex gap-2 mt-4 flex-wrap">
+     ${bid?'<span class="bg-tertiary/30 border border-tertiary text-tertiary-container px-2 py-1 rounded text-xs font-semibold">Przystąpić</span>':'<span class="bg-wsk-orange/30 border border-wsk-orange text-orange-200 px-2 py-1 rounded text-xs font-semibold">Decyzja zarządu</span>'}
+     <span class="bg-secondary/30 border border-secondary text-secondary-fixed-dim px-2 py-1 rounded text-xs font-semibold">Zadać pytania</span></div></div>
+  </div>
+
+  <!-- prawa: ryzyka + koszty -->
+  <div class="lg:col-span-7 flex flex-col gap-6">
+   <div class="bg-surface border border-outline-variant rounded-xl p-6 shadow-ambient">
+    <div class="flex items-center justify-between mb-4 border-b border-outline-variant pb-3">
+     <div class="flex items-center gap-2"><span class="material-symbols-outlined text-error ms-fill">flag</span><h3 class="font-bold text-primary">Flagi ryzyka</h3></div>
+     <div class="flex items-center gap-1.5">${sevSummary(d.risks)}</div></div>
+    <div class="divide-y divide-outline-variant max-h-80 overflow-y-auto -mx-2">
+     ${[...d.risks].sort((a,b)=>(SEV_ORDER[a.sev]??9)-(SEV_ORDER[b.sev]??9)).map(riskRow).join('')||'<p class="text-sm text-on-surface-variant px-2 py-3">Brak zarejestrowanych ryzyk.</p>'}</div></div>
+   <div class="bg-surface border border-outline-variant rounded-xl p-6 shadow-ambient">
+    <h3 class="font-bold text-primary mb-3">Struktura kosztów — widełki (tys. zł netto)</h3>
+    <canvas id="c-cost" height="150"></canvas></div>
+  </div>
+ </div>
+
+ <!-- materiały -->
+ <section class="bg-surface border border-outline-variant rounded-xl p-6 shadow-ambient mt-6">
+  <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
+   <h3 class="font-bold text-primary text-lg">Zestawienie materiałów (M00)</h3>
+   <input id="mq" oninput="filtMat()" placeholder="szukaj materiału…" class="border border-outline-variant rounded-lg px-3 py-1.5 text-sm w-56"/></div>
+  <div class="flex gap-2 flex-wrap mb-3" id="chips"></div>
+  <div class="overflow-auto max-h-[28rem] rounded-lg border border-outline-variant"><table class="dtable w-full text-sm"><thead><tr class="text-left text-[11px] uppercase tracking-wide text-on-surface-variant">
+   <th class="py-2.5 px-3 font-semibold">Materiał</th><th class="py-2.5 px-3 font-semibold">Branża</th><th class="py-2.5 px-3 font-semibold text-right">Ilość</th><th class="py-2.5 px-3 font-semibold">Jedn.</th><th class="py-2.5 px-3 font-semibold text-right">Cena</th><th class="py-2.5 px-3 font-semibold text-right">Wartość</th><th class="py-2.5 px-3 font-semibold">Status</th></tr></thead>
+   <tbody id="mtb">${d.materials.map(matRow).join('')}</tbody></table></div>
+  <div class="text-xs text-on-surface-variant mt-2">Razem ${d.materials.length} pozycji · wartość M00 <strong class="text-primary">${fmtPLN(d.mat_total)}</strong></div></section>
+
+ ${d.questions&&d.questions.length?`<section class="bg-surface border border-outline-variant rounded-xl p-6 shadow-ambient mt-6">
+  <h3 class="font-bold text-primary mb-2">Gotowe pytania do zamawiającego</h3>
+  <ul class="divide-y divide-outline-variant">${d.questions.map(q=>`<li class="flex gap-3 py-2.5"><span class="material-symbols-outlined text-[18px] text-secondary shrink-0 mt-0.5">help</span><span class="text-sm text-on-surface-variant leading-relaxed">${esc(q)}</span></li>`).join('')}</ul></section>`:''}
+ `;
+ // koszty chart
+ const g=d.groups||[];
+ CHARTS.push(new Chart($('#c-cost'),{type:'bar',data:{labels:g.map(x=>x.name.slice(0,30)),
+  datasets:[{label:'od',data:g.map(x=>Math.round(x.od/1000)),backgroundColor:'#adc6ff'},
+            {label:'do',data:g.map(x=>Math.round(x.do/1000)),backgroundColor:'#0058be'}]},
+  options:{indexAxis:'y',plugins:{legend:{position:'bottom'}},scales:{x:{ticks:{callback:v=>v+'k'}}}}}));
+ // chips statusów
+ const counts={}; d.materials.forEach(m=>counts[m.stat]=(counts[m.stat]||0)+1);
+ $('#chips').innerHTML='<button onclick="chipFilt(this,\'\')" class="chip text-xs font-bold px-3 py-1 rounded-full border border-outline-variant bg-surface-container ring-2 ring-secondary">Wszystkie</button>'+
+  Object.entries(counts).map(([k,v])=>`<button onclick="chipFilt(this,'${esc(k)}')" class="chip text-xs font-bold px-3 py-1 rounded-full border" style="color:${ST[k]||'#64748b'};border-color:${(ST[k]||'#64748b')}55">${esc(k)} · ${v}</button>`).join('');
+};
+function matRow(m){const c=ST[m.stat]||'#64748b';return `<tr data-s="${esc(m.stat)}">
+ <td class="py-2 px-3 text-on-surface">${esc(m.mat)}</td><td class="py-2 px-3 text-xs text-on-surface-variant">${esc(m.branza)}</td>
+ <td class="py-2 px-3 text-right tnum">${esc(m.il)}</td><td class="py-2 px-3 text-on-surface-variant">${esc(m.jedn)}</td>
+ <td class="py-2 px-3 text-right tnum text-on-surface-variant">${m.cena?fmtPLN(m.cena):'—'}</td><td class="py-2 px-3 text-right tnum font-semibold text-primary">${m.wart?fmtPLN(m.wart):'—'}</td>
+ <td class="py-2 px-3"><span class="pill" style="background:${c}1a;color:${c}">${esc(m.stat)}</span></td></tr>`;}
+function riskRow(r){const c=SEV[r.sev]||'#64748b';const ic=SEV_ICON[r.sev]||'help';return `
+ <div class="flex items-start gap-3 px-2 py-3">
+  <span class="material-symbols-outlined text-[20px] mt-0.5 shrink-0" style="color:${c}">${ic}</span>
+  <div class="min-w-0 flex-1">
+   <div class="flex items-center gap-2 mb-0.5 flex-wrap">
+    <span class="text-[10px] font-bold uppercase tracking-wide" style="color:${c}">${esc(r.sev)}</span>
+    <h4 class="text-sm font-semibold text-primary leading-snug">${esc(r.title)}</h4></div>
+   <p class="text-xs text-on-surface-variant leading-relaxed">${esc(r.desc)}</p></div></div>`;}
+function sevSummary(risks){const cnt={};risks.forEach(r=>cnt[r.sev]=(cnt[r.sev]||0)+1);
+ return Object.entries(cnt).sort((a,b)=>(SEV_ORDER[a[0]]??9)-(SEV_ORDER[b[0]]??9))
+  .map(([s,n])=>`<span class="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full" style="background:${(SEV[s]||'#64748b')}1a;color:${SEV[s]||'#64748b'}">${n} ${esc(s).toLowerCase()}</span>`).join('')||'';}
+function filtMat(){const q=$('#mq').value.toLowerCase();document.querySelectorAll('#mtb tr').forEach(r=>r.style.display=r.innerText.toLowerCase().includes(q)?'':'none');}
+function chipFilt(b,s){document.querySelectorAll('.chip').forEach(c=>c.classList.remove('ring-2','ring-secondary'));b.classList.add('ring-2','ring-secondary');document.querySelectorAll('#mtb tr').forEach(r=>r.style.display=(!s||r.dataset.s===s)?'':'none');}
+function dlExcel(id){alert('Plik źródłowy: '+id+'.xlsx\\n(pobieranie podłączymy gdy aplikacja pójdzie na audyt.wskonsorcjum.pl za logowaniem)');}
+
+// ================= NOWA ANALIZA
+VIEWS.nowa=async(app)=>{
+ app.innerHTML=`
+ <div class="max-w-3xl mx-auto">
+  <div class="mb-6 text-center">
+   <p class="text-sm text-secondary font-semibold uppercase tracking-wider">Nowa analiza</p>
+   <h2 class="text-3xl font-extrabold text-primary">Przeanalizuj dokumentację przetargową</h2>
+   <p class="text-on-surface-variant mt-1">Wklej link do folderu Google Drive z dokumentacją postępowania. Silnik sam pobierze i przeanalizuje wszystkie dokumenty.</p></div>
+
+  <div id="form" class="bg-surface border border-outline-variant rounded-2xl p-6 md:p-8 shadow-ambient">
+   <label class="block text-sm font-semibold text-primary mb-2">Link do folderu Google Drive</label>
+   <div class="flex items-center gap-2 border border-outline-variant rounded-xl px-3 py-2 focus-within:border-secondary focus-within:ring-1 focus-within:ring-secondary bg-surface-container-low">
+    <span class="material-symbols-outlined text-on-surface-variant">link</span>
+    <input id="url" placeholder="https://drive.google.com/drive/folders/…" class="flex-1 bg-transparent text-sm focus:outline-none"/></div>
+   <p class="text-xs text-on-surface-variant mt-2">Folder musi zawierać: SWZ/OPZ, SST, projekt, przedmiar, decyzje. Silnik czyta wszystko rekursywnie + OCR rysunków.</p>
+
+   <div class="mt-5">
+    <label class="block text-sm font-semibold text-primary mb-2">Tryb</label>
+    <div class="grid sm:grid-cols-2 gap-3">
+     <label class="border border-outline-variant rounded-xl p-4 cursor-pointer hover:border-secondary has-[:checked]:border-secondary has-[:checked]:bg-secondary/5 transition">
+      <div class="flex items-center gap-2"><input type="radio" name="mode" value="demo" checked class="text-secondary"><span class="font-semibold text-sm">Podgląd (demo)</span></div>
+      <p class="text-xs text-on-surface-variant mt-1 ml-6">Pokazuje przebieg etapów ~10 s. Nie zużywa silnika — do prezentacji UX.</p></label>
+     <label class="border border-outline-variant rounded-xl p-4 cursor-pointer hover:border-secondary has-[:checked]:border-secondary has-[:checked]:bg-secondary/5 transition">
+      <div class="flex items-center gap-2"><input type="radio" name="mode" value="real" class="text-secondary"><span class="font-semibold text-sm">Pełna analiza</span></div>
+      <p class="text-xs text-on-surface-variant mt-1 ml-6">Realny audyt agentem (kilka–kilkanaście min). Tworzy plik xlsx + 53 zakładki.</p></label>
+    </div></div>
+
+   <button onclick="startAnalysis()" class="w-full mt-6 flex items-center justify-center gap-2 bg-secondary text-white rounded-xl py-3 font-semibold hover:bg-on-secondary-fixed-variant transition shadow-ambient">
+    <span class="material-symbols-outlined">play_arrow</span>Start analizy</button>
+  </div>
+
+  <!-- PROGRESS -->
+  <div id="prog" class="hidden bg-surface border border-outline-variant rounded-2xl p-6 md:p-8 shadow-ambient mt-2">
+   <div class="flex items-center justify-between mb-2">
+    <h3 id="p-stage" class="font-bold text-primary">Inicjalizacja…</h3>
+    <span id="p-pct" class="text-2xl font-extrabold text-secondary">0%</span></div>
+   <div class="w-full bg-surface-container rounded-full h-3 overflow-hidden mb-1">
+    <div id="p-bar" class="h-3 rounded-full transition-all duration-300" style="width:0%;background:linear-gradient(90deg,#0058be,#2170e4)"></div></div>
+   <p class="text-xs text-on-surface-variant mb-4">Analiza w toku — możesz zostawić okno otwarte. Postęp aktualizuje się na żywo.</p>
+   <div class="bg-[#0b1f38] rounded-xl p-4 font-mono text-xs text-slate-200 h-56 overflow-y-auto" id="p-log"></div>
+   <div id="p-done" class="hidden mt-4 flex items-center gap-3"></div>
+  </div>
+ </div>`;
+};
+let ES=null;
+async function startAnalysis(){
+ const url=$('#url').value.trim();
+ if(!url){$('#url').focus();$('#url').parentElement.classList.add('border-error');return;}
+ const mode=document.querySelector('input[name=mode]:checked').value;
+ $('#form').classList.add('opacity-50','pointer-events-none');
+ $('#prog').classList.remove('hidden'); $('#prog').scrollIntoView({behavior:'smooth'});
+ const log=$('#p-log'); log.innerHTML='';
+ let r;
+ try{ r=await (await fetch(API+'/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url,mode})})).json(); }
+ catch(e){ addLog('ERR\tBłąd startu: '+e.message); return; }
+ if(r.error){ addLog('ERR\t'+r.error); $('#form').classList.remove('opacity-50','pointer-events-none'); return; }
+ if(ES)ES.close();
+ ES=new EventSource(API+'/progress/'+r.job_id+'?token='+encodeURIComponent(TOKEN));
+ let nlog=0;
+ ES.onmessage=ev=>{ const s=JSON.parse(ev.data); paint(s,()=>nlog,n=>nlog=n); };
+ ES.addEventListener('done',ev=>{ const s=JSON.parse(ev.data); paint(s,()=>nlog,n=>nlog=n); ES.close(); finishAnalysis(s,mode); });
+ ES.addEventListener('error',()=>{ addLog('ERR\tPołączenie przerwane.'); });
+}
+function paint(s,getN,setN){
+ $('#p-pct').textContent=(s.pct||0)+'%';
+ $('#p-bar').style.width=(s.pct||0)+'%';
+ if(s.stage)$('#p-stage').textContent=s.stage;
+ let n=getN(); for(let i=n;i<s.log.length;i++) addLog(s.log[i].m); setN(s.log.length);
+}
+const LOGLVL={
+ STAGE:{dot:'#2170e4',cls:'text-white font-semibold'},
+ TOOL :{dot:'#64748b',cls:'text-slate-400'},
+ MSG  :{dot:'#94a3b8',cls:'text-slate-300'},
+ INFO :{dot:'#0ea5e9',cls:'text-slate-200'},
+ OK   :{dot:'#16a34a',cls:'text-emerald-300 font-semibold'},
+ ERR  :{dot:'#dc2626',cls:'text-red-300 font-semibold'}};
+function addLog(m){
+ const l=$('#p-log');if(!l)return;
+ let lvl='MSG',txt=m;
+ const i=m.indexOf('\t');
+ if(i>0 && LOGLVL[m.slice(0,i)]){lvl=m.slice(0,i);txt=m.slice(i+1);}
+ const cfg=LOGLVL[lvl];
+ const row=document.createElement('div');
+ row.className='flex items-start gap-2 py-0.5';
+ row.innerHTML='<span class="mt-1.5 w-1.5 h-1.5 rounded-full shrink-0" style="background:'+cfg.dot+'"></span>'+
+               '<span class="'+cfg.cls+'"></span>';
+ row.lastChild.textContent=txt;
+ l.appendChild(row);l.scrollTop=l.scrollHeight;
+}
+async function finishAnalysis(s,mode){
+ const done=$('#p-done'); done.classList.remove('hidden');
+ $('#p-bar').style.background=s.ok?'linear-gradient(90deg,#0f7a4d,#16a34a)':'linear-gradient(90deg,#d35400,#dc2626)';
+ if(mode==='real'&&s.result_id){
+  await loadAudits();
+  done.innerHTML=`<span class="material-symbols-outlined text-tertiary ms-fill">check_circle</span><span class="text-sm">Raport gotowy.</span>
+   <button onclick="go('analiza','${s.result_id}')" class="ml-auto bg-secondary text-white px-4 py-2 rounded-lg text-sm font-semibold">Otwórz analizę →</button>`;
+ } else if(mode==='demo'){
+  done.innerHTML=`<span class="material-symbols-outlined text-tertiary ms-fill">check_circle</span>
+   <span class="text-sm">Podgląd zakończony. W trybie <b>pełnej analizy</b> powstanie realny raport xlsx.</span>
+   <button onclick="go('przetargi')" class="ml-auto bg-surface border border-outline-variant px-4 py-2 rounded-lg text-sm font-semibold hover:border-secondary">Zobacz przykładowe →</button>`;
+ } else {
+  done.innerHTML=`<span class="material-symbols-outlined text-wsk-orange ms-fill">info</span><span class="text-sm">${s.ok?'Zakończono.':'Zakończono z uwagami — sprawdź log.'}</span>`;
+ }
+}
+
+// ================= RAPORTY
+VIEWS.raporty=async(app)=>{
+ if(!AUDITS.length) await loadAudits();
+ const totOd=AUDITS.reduce((s,a)=>s+(a.netto_od||0),0), totDo=AUDITS.reduce((s,a)=>s+(a.netto_do||0),0);
+ const mats=AUDITS.reduce((s,a)=>s+a.mat_count,0);
+ app.innerHTML=`
+ <div class="flex flex-col md:flex-row justify-between md:items-center gap-3 mb-6">
+  <div><p class="text-sm text-secondary font-semibold uppercase tracking-wider">Raporty</p>
+   <h2 class="text-3xl font-extrabold text-primary">Raporty i analizy zbiorcze</h2>
+   <p class="text-on-surface-variant">Przegląd całego portfela przeanalizowanych postępowań.</p></div></div>
+ <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  ${kpi('account_balance','Wartość portfela',fmtMln(totDo),'górne widełki netto','#0d2b4e')}
+  ${kpi('trending_up','Dolne widełki',fmtMln(totOd),'minimalna wartość','#0058be')}
+  ${kpi('inventory_2','Materiały łącznie',mats,'pozycji we wszystkich M00','#0f7a4d')}
+  ${kpi('warning','Ryzyka łącznie',AUDITS.reduce((s,a)=>s+a.risks,0),AUDITS.reduce((s,a)=>s+a.krit,0)+' krytycznych','#d35400')}
+ </div>
+ <div class="grid lg:grid-cols-12 gap-6">
+  <section class="lg:col-span-8 bg-surface border border-outline-variant rounded-xl p-6 shadow-ambient">
+   <h3 class="font-bold text-primary mb-4">Wartość szacunkowa wg postępowania (mln zł netto)</h3>
+   <canvas id="r-val" height="120"></canvas></section>
+  <section class="lg:col-span-4 bg-surface border border-outline-variant rounded-xl p-6 shadow-ambient">
+   <h3 class="font-bold text-primary mb-4">Rozkład rekomendacji</h3>
+   <canvas id="r-rek" height="180"></canvas></section>
+  <section class="lg:col-span-12 bg-surface border border-outline-variant rounded-xl p-6 shadow-ambient">
+   <h3 class="font-bold text-primary mb-4">Ryzyka wg postępowania</h3>
+   <canvas id="r-risk" height="90"></canvas></section>
+ </div>`;
+ const a=[...AUDITS].sort((x,y)=>(y.netto_do||0)-(x.netto_do||0));
+ CHARTS.push(new Chart($('#r-val'),{type:'bar',data:{labels:a.map(x=>shortName(x.project)),
+  datasets:[{label:'od',data:a.map(x=>(x.netto_od||0)/1e6),backgroundColor:'#adc6ff'},{label:'do',data:a.map(x=>(x.netto_do||0)/1e6),backgroundColor:'#0058be'}]},
+  options:{plugins:{legend:{position:'bottom'}},scales:{y:{ticks:{callback:v=>v+' mln'}}}}}));
+ const bid=AUDITS.filter(x=>x.bid).length;
+ CHARTS.push(new Chart($('#r-rek'),{type:'doughnut',data:{labels:['Składać','Decyzja/odpuścić'],datasets:[{data:[bid,AUDITS.length-bid],backgroundColor:['#0f7a4d','#d35400']}]},options:{plugins:{legend:{position:'bottom'}}}}));
+ CHARTS.push(new Chart($('#r-risk'),{type:'bar',data:{labels:a.map(x=>shortName(x.project)),
+  datasets:[{label:'krytyczne',data:a.map(x=>x.krit),backgroundColor:'#dc2626'},{label:'pozostałe',data:a.map(x=>x.risks-x.krit),backgroundColor:'#f59e0b'}]},
+  options:{plugins:{legend:{position:'bottom'}},scales:{x:{stacked:true},y:{stacked:true}}}}));
+};
+
+// ================= PLATFORMA: wspólne
+const jget=async u=>{const r=await fetch(u);if(!r.ok)throw new Error('HTTP '+r.status);return r.json();};
+function stars(v){v=Number(v)||0;const full=Math.round(v);let s='';for(let i=1;i<=5;i++)s+=`<span class="material-symbols-outlined text-[16px] ms-fill" style="color:${i<=full?'#f59e0b':'#cbd5e1'}">star</span>`;return s;}
+function chips(arr,color){return (arr||[]).map(x=>`<span class="text-[11px] px-2 py-0.5 rounded-full" style="background:${color}1a;color:${color}">${esc(x)}</span>`).join(' ');}
+
+// ================= PRZETARGI (moduł platformy)
+VIEWS.postepowania=async(app)=>{
+ const arr=(await jget('/api/przetargi'))||[];
+ const sum=arr.reduce((s,p)=>s+(Number(p.wartosc_szacunkowa)||0),0);
+ const pilne=arr.filter(p=>p.dni_do_terminu!=null&&p.dni_do_terminu>=0&&p.dni_do_terminu<=7).length;
+ app.innerHTML=`
+ <div class="mb-6"><p class="text-sm text-secondary font-semibold uppercase tracking-wider">Platforma</p>
+  <h2 class="text-3xl font-extrabold text-primary">Przetargi / postępowania</h2>
+  <p class="text-on-surface-variant">Dane z modułu przetargowego platformy.</p></div>
+ <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  ${kpi('description','Postępowania',arr.length,'w bazie','#0058be')}
+  ${kpi('payments','Łączna wartość szac.',fmtMln(sum),'netto','#0d2b4e')}
+  ${kpi('schedule','Pilne terminy',pilne,'≤ 7 dni','#d35400')}
+  ${kpi('rule','Z rozbieżnościami',arr.filter(p=>Number(p.rozbieznosci)>0).length,'wykrytymi','#dc2626')}
+ </div>
+ <section class="bg-surface border border-outline-variant rounded-xl shadow-ambient overflow-hidden">
+  <div class="overflow-x-auto"><table class="dtable w-full text-sm text-left">
+   <thead><tr class="text-[11px] uppercase tracking-wide text-on-surface-variant">
+    <th class="p-3 font-semibold">Postępowanie</th><th class="p-3 font-semibold">Zamawiający</th><th class="p-3 font-semibold">Lokalizacja</th><th class="p-3 font-semibold text-right">Wartość</th><th class="p-3 font-semibold">Termin</th><th class="p-3 font-semibold">Status</th></tr></thead>
+   <tbody>${arr.map(p=>{const dni=p.dni_do_terminu;
+     const dc=dni==null?['#eceef0','#64748b']:dni<0?['#e0e3e5','#64748b']:dni<=7?['#ffdad6','#93000a']:dni<=30?['#fde68a','#92400e']:['#c7f3dc','#00391f'];
+     return `<tr>
+      <td class="p-3"><div class="font-medium text-primary">${esc(p.nazwa||'—')}</div><div class="text-xs text-on-surface-variant">${esc(p.numer_ref||p.numer_ogloszenia||'')}</div></td>
+      <td class="p-3 text-on-surface-variant">${esc(p.zamawiajacy||'—')}</td>
+      <td class="p-3 text-on-surface-variant">${esc(p.lokalizacja||'—')}</td>
+      <td class="p-3 text-right tnum font-semibold">${p.wartosc_szacunkowa?fmtMln(Number(p.wartosc_szacunkowa)):'—'}</td>
+      <td class="p-3 whitespace-nowrap"><span class="pill tnum" style="background:${dc[0]};color:${dc[1]}">${esc(p.termin_skladania||'—')}${dni!=null?' · '+dni+' dni':''}</span></td>
+      <td class="p-3"><span class="pill bg-secondary/10 text-secondary">${esc(p.statusLabel||p.status||'—')}</span></td></tr>`;
+   }).join('')||'<tr><td colspan=6 class="p-8 text-center text-on-surface-variant">Brak postępowań.</td></tr>'}</tbody></table></div></section>`;
+};
+
+// ================= GOOGLE DRIVE (moduł platformy)
+let DRV={drives:[],driveId:'',driveName:'',path:''};
+VIEWS.drive=async(app)=>{
+ app.innerHTML=`
+ <div class="mb-4 flex items-end justify-between gap-3 flex-wrap"><div>
+  <p class="text-sm text-secondary font-semibold uppercase tracking-wider">Platforma</p>
+  <h2 class="text-3xl font-extrabold text-primary">Google Drive</h2></div>
+  <select id="drvSel" onchange="drvPick(this.value)" class="border border-outline-variant rounded-lg p-2 text-sm bg-surface"></select></div>
+ <div id="drvCrumb" class="text-sm text-on-surface-variant mb-3"></div>
+ <div id="drvBody" class="bg-surface border border-outline-variant rounded-xl shadow-ambient p-2 min-h-[320px]">Ładowanie…</div>`;
+ try{ DRV.drives=(await jget('/api/drive/dyski')).drives||[]; }
+ catch(e){ $('#drvBody').innerHTML='<p class="p-6 text-error">Nie udało się pobrać dysków: '+esc(e.message)+'</p>'; return; }
+ $('#drvSel').innerHTML=DRV.drives.map(d=>`<option value="${esc(d.id)}">${esc(d.nazwa)}</option>`).join('');
+ const f=DRV.drives[0]||{id:'',nazwa:'Mój dysk'};
+ DRV.driveId=f.id; DRV.driveName=f.nazwa; DRV.path=''; drvLoad();
+};
+function drvPick(id){const d=DRV.drives.find(x=>x.id===id)||{};DRV.driveId=id;DRV.driveName=d.nazwa||'';DRV.path='';drvLoad();}
+function drvGo(p){DRV.path=p;drvLoad();}
+async function drvLoad(){
+ const body=$('#drvBody'); if(body)body.innerHTML='<p class="p-6 text-on-surface-variant">Ładowanie…</p>';
+ const segs=DRV.path?DRV.path.split('/'):[]; let acc='';
+ let crumb=`<a onclick="drvGo('')" class="cursor-pointer hover:text-secondary font-medium">${esc(DRV.driveName)}</a>`;
+ segs.forEach(s=>{acc=acc?acc+'/'+s:s;crumb+=` <span class="text-outline">/</span> <a onclick="drvGo('${esc(acc).replace(/'/g,"\\'")}')" class="cursor-pointer hover:text-secondary">${esc(s)}</a>`;});
+ $('#drvCrumb').innerHTML=crumb;
+ let data;
+ try{ data=await jget('/api/drive/lista?drive_id='+encodeURIComponent(DRV.driveId)+'&folder='+encodeURIComponent(DRV.path)); }
+ catch(e){ if(body)body.innerHTML='<p class="p-6 text-error">Błąd: '+esc(e.message)+'</p>'; return; }
+ const items=(data.items||[]).slice().sort((a,b)=>((a.typ==='folder'?0:1)-(b.typ==='folder'?0:1))||String(a.nazwa||'').localeCompare(String(b.nazwa||'')));
+ body.innerHTML='<div class="divide-y divide-outline-variant">'+(items.map(it=>{
+   const folder=it.typ==='folder'||it.mimeType==='inode/directory'||String(it.mimeType||'').includes('folder');
+   const ic=folder?'folder':drvIcon(it.rozszerzenie,it.mimeType);
+   const sp=esc(it.sciezka).replace(/'/g,"\\'"); const nm=esc(it.nazwa).replace(/'/g,"\\'");
+   const click=folder?`onclick="drvGo('${sp}')"`:`onclick="drvDownload('${sp}','${nm}')"`;
+   return `<div ${click} class="flex items-center gap-3 px-3 py-2 hover:bg-surface-container-low cursor-pointer">
+     <span class="material-symbols-outlined" style="color:${folder?'#f59e0b':'#64748b'}">${ic}</span>
+     <span class="flex-1 text-sm ${folder?'font-medium text-primary':'text-on-surface'}">${esc(it.nazwa)}</span>
+     <span class="text-xs text-on-surface-variant tnum">${it.rozmiar?fmtSize(it.rozmiar):''}</span>
+     <span class="text-xs text-on-surface-variant w-24 text-right hidden sm:block">${esc(it.data||'')}</span></div>`;
+ }).join('')||'<p class="p-6 text-on-surface-variant">Pusty folder.</p>')+'</div>';
+}
+function drvIcon(ext,mt){ext=String(ext||'').toLowerCase();mt=String(mt||'');
+ if(/pdf/.test(ext+mt))return'picture_as_pdf';if(/(xls|sheet)/.test(ext+mt))return'table_view';
+ if(/(doc|word)/.test(ext+mt))return'description';if(/(jpg|jpeg|png|image)/.test(ext+mt))return'image';
+ if(/(dwg|dxf)/.test(ext))return'architecture';return'draft';}
+function fmtSize(b){b=Number(b)||0;if(!b)return'';const u=['B','KB','MB','GB'];let i=0;while(b>=1024&&i<3){b/=1024;i++;}return b.toFixed(b<10&&i>0?1:0)+' '+u[i];}
+async function drvDownload(sciezka,nazwa){
+ try{const r=await fetch('/api/drive/pobierz?drive_id='+encodeURIComponent(DRV.driveId)+'&sciezka='+encodeURIComponent(sciezka));
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  const blob=await r.blob();const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nazwa;a.click();URL.revokeObjectURL(a.href);}
+ catch(e){alert('Nie udało się pobrać pliku: '+e.message);}
+}
+
+// ================= PODWYKONAWCY (kontrahenci)
+function pwFilter(el){const q=el.value.toLowerCase();document.querySelectorAll('#pwGrid>div').forEach(c=>c.style.display=c.innerText.toLowerCase().includes(q)?'':'none');}
+VIEWS.podwykonawcy=async(app)=>{
+ const arr=(await jget('/api/firmy'))||[];
+ const akt=arr.filter(f=>f.aktywny).length;
+ const oc=arr.filter(f=>f.ocena_ogolna).map(f=>Number(f.ocena_ogolna)); const avg=oc.length?oc.reduce((a,b)=>a+b,0)/oc.length:0;
+ app.innerHTML=`
+ <div class="mb-6"><p class="text-sm text-secondary font-semibold uppercase tracking-wider">Platforma</p>
+  <h2 class="text-3xl font-extrabold text-primary">Podwykonawcy</h2>
+  <p class="text-on-surface-variant">Baza firm wykonawczych z ocenami współpracy.</p></div>
+ <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  ${kpi('groups','Firmy',arr.length,'w bazie','#0058be')}
+  ${kpi('check_circle','Aktywni',akt,'współpracujący','#0f7a4d')}
+  ${kpi('star','Średnia ocena',avg?avg.toFixed(2):'—','/5','#f59e0b')}
+  ${kpi('handshake','Współprace',arr.reduce((s,f)=>s+(Number(f.liczba_wspolprac)||0),0),'łącznie','#0d2b4e')}
+ </div>
+ <input oninput="pwFilter(this)" placeholder="szukaj firmy / branży / specjalizacji…" class="border border-outline-variant rounded-lg px-3 py-2 text-sm w-full max-w-md mb-4">
+ <div id="pwGrid" class="grid md:grid-cols-2 xl:grid-cols-3 gap-4">${arr.map(f=>`
+  <div class="bg-surface border border-outline-variant rounded-xl p-5 shadow-ambient">
+   <div class="flex items-start justify-between gap-2">
+    <div><h3 class="font-bold text-primary leading-snug">${esc(f.nazwa)}</h3>
+     <div class="text-xs text-on-surface-variant capitalize">${esc(f.branza||'')}</div></div>
+    <span class="w-2.5 h-2.5 rounded-full mt-1.5 shrink-0" style="background:${f.aktywny?'#16a34a':'#cbd5e1'}"></span></div>
+   <div class="flex items-center gap-1 mt-2">${stars(f.ocena_ogolna)}<span class="text-xs text-on-surface-variant ml-1">${f.ocena_ogolna?Number(f.ocena_ogolna).toFixed(2):'brak ocen'} · ${f.liczba_wspolprac||0} współpr.</span></div>
+   <div class="flex flex-wrap gap-1 mt-3">${chips(f.specjalizacje,'#0058be')}</div>
+   <div class="flex flex-wrap gap-3 mt-3 pt-3 border-t border-outline-variant text-xs text-on-surface-variant">
+    ${f.telefon?`<a href="tel:${esc(f.telefon)}" class="flex items-center gap-1 hover:text-secondary"><span class="material-symbols-outlined text-[15px]">call</span>${esc(f.telefon)}</a>`:''}
+    ${f.email?`<a href="mailto:${esc(f.email)}" class="flex items-center gap-1 hover:text-secondary"><span class="material-symbols-outlined text-[15px]">mail</span>${esc(f.email)}</a>`:''}</div></div>`).join('')}</div>`;
+};
+
+// ================= MATERIAŁY (dostawcy materiałów)
+VIEWS.materialy=async(app)=>{
+ const arr=(await jget('/api/dostawcy-materialow'))||[];
+ const rab=arr.filter(d=>d.rabat_procent).map(d=>Number(d.rabat_procent)); const avgR=rab.length?rab.reduce((a,b)=>a+b,0)/rab.length:0;
+ const cz=arr.filter(d=>d.czas_dostawy_dni).map(d=>Number(d.czas_dostawy_dni)); const avgC=cz.length?cz.reduce((a,b)=>a+b,0)/cz.length:0;
+ app.innerHTML=`
+ <div class="mb-6"><p class="text-sm text-secondary font-semibold uppercase tracking-wider">Platforma</p>
+  <h2 class="text-3xl font-extrabold text-primary">Materiały — dostawcy</h2>
+  <p class="text-on-surface-variant">Baza dostawców materiałów z rabatami i warunkami.</p></div>
+ <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  ${kpi('local_shipping','Dostawcy',arr.length,'w bazie','#0058be')}
+  ${kpi('percent','Średni rabat',avgR?avgR.toFixed(1)+'%':'—','negocjowany','#0f7a4d')}
+  ${kpi('schedule','Średni czas dostawy',avgC?Math.round(avgC)+' dni':'—','','#0d2b4e')}
+  ${kpi('category','Kategorie',new Set(arr.flatMap(d=>d.kategorie||[])).size,'asortymentu','#d35400')}
+ </div>
+ <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4">${arr.map(d=>`
+  <div class="bg-surface border border-outline-variant rounded-xl p-5 shadow-ambient">
+   <div class="flex items-start justify-between gap-2">
+    <h3 class="font-bold text-primary leading-snug">${esc(d.nazwa)}</h3>
+    ${d.rabat_procent?`<span class="pill bg-tertiary-container text-on-tertiary-container shrink-0">-${esc(d.rabat_procent)}%</span>`:''}</div>
+   <div class="text-xs text-on-surface-variant mt-0.5 capitalize">${esc(Array.isArray(d.branza)?d.branza.join(', '):(d.branza||''))}</div>
+   <div class="flex flex-wrap gap-1 mt-3">${chips(d.kategorie,'#d35400')}</div>
+   <div class="flex flex-wrap gap-3 mt-3 text-xs text-on-surface-variant">
+    ${d.czas_dostawy_dni?`<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">local_shipping</span>${esc(d.czas_dostawy_dni)} dni</span>`:''}
+    ${d.warunki_platnosci?`<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">payments</span>${esc(d.warunki_platnosci)}</span>`:''}</div>
+   ${(d.przedstawiciel_handlowy||d.tel_przedstawiciela||d.telefon)?`<div class="flex flex-wrap gap-3 mt-3 pt-3 border-t border-outline-variant text-xs text-on-surface-variant">
+     ${d.przedstawiciel_handlowy?`<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">person</span>${esc(d.przedstawiciel_handlowy)}</span>`:''}
+     ${(d.tel_przedstawiciela||d.telefon)?`<a href="tel:${esc(d.tel_przedstawiciela||d.telefon)}" class="flex items-center gap-1 hover:text-secondary"><span class="material-symbols-outlined text-[15px]">call</span>${esc(d.tel_przedstawiciela||d.telefon)}</a>`:''}</div>`:''}</div>`).join('')}</div>`;
+};
+
+// ---------------- boot
+(async()=>{
+ await loadAudits();
+ const h=location.hash.slice(1).split('/');
+ const view=VIEWS[h[0]]?h[0]:'pulpit';
+ go(view,h[1]);
+})();
+</script>
+</body></html>
