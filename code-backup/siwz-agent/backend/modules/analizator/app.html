@@ -421,6 +421,30 @@ function covBadge(kind){
  return `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap" style="background:${v[1]}1a;color:${v[1]}">${v[0]}</span>`;
 }
 function covStat(icon,val,label,color){return `<div class="rounded-xl border border-outline-variant p-3 bg-surface-container-low"><div class="flex items-center gap-2"><span class="material-symbols-outlined text-[20px]" style="color:${color}">${icon}</span><span class="text-2xl font-extrabold text-primary">${val}</span></div><div class="text-[11px] text-on-surface-variant mt-0.5">${esc(label)}</div></div>`;}
+async function setSource(aid){
+ const inp=document.getElementById('srcUrl_'+aid); const url=inp?inp.value.trim():'';
+ if(!url){alert('Wklej link do folderu Google Drive z dokumentacją przetargu.');return;}
+ try{
+  const sr=await (await fetch(API+'/source/'+encodeURIComponent(aid),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url})})).json();
+  if(sr.ok){ alert('Podpięto folder: '+(sr.name||'')+'.\nDokumenty w tabeli są teraz klikalne.'); if(inp){inp.classList.remove('ring-2','ring-secondary');} }
+  else alert(sr.error||'Nie udało się podpiąć folderu.');
+ }catch(e){ alert('Błąd sieci.'); }
+}
+function toggleExp(id){const el=document.getElementById(id);const ic=document.getElementById(id+'_ic');if(!el)return;el.classList.toggle('hidden');if(ic)ic.textContent=el.classList.contains('hidden')?'expand_more':'expand_less';}
+function expCard(e){
+ const pts=(e.points||[]).map(p=>`<div class="py-2 px-3 border-b border-outline-variant last:border-0">
+   <div class="flex items-start gap-2 flex-wrap"><span class="text-xs font-bold text-primary">${esc(p.element)}</span>${p.ocena?`<span class="text-[10px] font-bold px-1.5 py-0.5 rounded" style="background:#0058be1a;color:#0058be">${esc(p.ocena)}</span>`:''}</div>
+   ${p.analiza?`<p class="text-xs text-on-surface-variant mt-1 leading-relaxed">${esc(p.analiza)}</p>`:''}
+   ${p.rekomendacja&&p.rekomendacja!=='—'?`<p class="text-xs mt-1" style="color:#0f7a4d"><b>&#8594; Rekomendacja:</b> ${esc(p.rekomendacja)}</p>`:''}
+   ${p.pytanie&&p.pytanie!=='—'?`<p class="text-[11px] mt-0.5" style="color:#d35400"><b>? Pytanie:</b> ${esc(p.pytanie)}</p>`:''}</div>`).join('');
+ const id='exp_'+esc(e.key);
+ return `<div class="border border-outline-variant rounded-lg overflow-hidden">
+   <button onclick="toggleExp('${id}')" class="w-full flex items-center justify-between gap-2 px-3 py-2.5 bg-surface-container-low hover:bg-surface-container text-left">
+    <span class="flex items-center gap-2 min-w-0"><span class="text-[10px] font-bold text-white bg-secondary px-1.5 py-0.5 rounded shrink-0">${esc(e.key)}</span><span class="text-sm font-semibold text-primary shrink-0">${esc(e.rola)}</span><span class="text-xs text-on-surface-variant truncate hidden md:inline">— ${esc(e.osoba)}</span></span>
+    <span class="flex items-center gap-2 shrink-0"><span class="text-[11px] text-on-surface-variant">${(e.points||[]).length} wniosków</span><span id="${id}_ic" class="material-symbols-outlined text-[20px] text-on-surface-variant">expand_more</span></span></button>
+   <div id="${id}" class="hidden">${pts||'<p class="text-sm text-on-surface-variant px-3 py-3">Brak szczegółowych wniosków w arkuszu.</p>'}</div></div>`;
+}
+
 async function openDoc(aid,el){
  const q=el.getAttribute('data-q')||'';
  const w=window.open('','_blank');
@@ -428,15 +452,8 @@ async function openDoc(aid,el){
  try{
   const r=await (await fetch(API+'/docfile/'+encodeURIComponent(aid)+'?q='+encodeURIComponent(q))).json();
   if(r.url){ if(w) w.location.href=r.url; else window.open(r.url,'_blank'); }
-  else if(r.error==='no_source'){
-   if(w) w.close();
-   const furl=prompt('Ten audyt nie ma podpiętego folderu źródłowego.\nWklej link do folderu Google Drive z dokumentacją tego przetargu (raz na audyt):');
-   if(!furl) return;
-   const sr=await (await fetch(API+'/source/'+encodeURIComponent(aid),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:furl})})).json();
-   if(sr.ok){ openDoc(aid,el); } else { alert(sr.error||'Nie udało się podpiąć folderu.'); }
-  }
-  else { const msg='Nie udało się otworzyć: '+(r.error||'błąd');
-   if(w) w.document.body.innerHTML='<div style="font-family:Inter,sans-serif;padding:3rem;color:#92400e">'+msg+'</div>'; else alert(msg); }
+  else if(r.error==='no_source'){ if(w) w.close(); const inp=document.getElementById('srcUrl_'+aid); if(inp){inp.focus();inp.classList.add('ring-2','ring-secondary');} alert('Najpierw podepnij źródłowy folder Drive — wklej link w polu „folder z dokumentacją" na górze sekcji „Co przeanalizowane" i kliknij „Podepnij folder".'); }
+  else { const msg='Nie udało się otworzyć: '+(r.error||'błąd'); if(w) w.document.body.innerHTML='<div style="font-family:Inter,sans-serif;padding:3rem;color:#92400e">'+msg+'</div>'; else alert(msg); }
  }catch(e){ if(w) w.document.body.innerHTML='<div style="font-family:sans-serif;padding:3rem;color:#b91c1c">Błąd sieci.</div>'; }
 }
 
@@ -494,6 +511,7 @@ function renderCoverage(d){
    <div>
     <div class="text-sm font-semibold text-primary mb-2">Dokumenty i sposób analizy
      <span class="text-[11px] font-normal text-on-surface-variant">(${ds.vision||0} vision · ${ds.ocr||0} OCR tekst · ${ds.read||0} przeczytane)</span></div>
+    <div class="flex items-center gap-2 mb-2 flex-wrap"><input id="srcUrl_${aid}" placeholder="wklej link do folderu Drive z dokumentacją, by otwierać pliki" class="flex-1 min-w-0 border border-outline-variant rounded-lg px-2.5 py-1.5 text-xs"/><button onclick="setSource('${aid}')" class="text-xs font-semibold px-3 py-1.5 bg-secondary text-white rounded-lg whitespace-nowrap hover:bg-secondary/90">Podepnij folder</button></div>
     <div class="overflow-auto max-h-96 rounded-lg border border-outline-variant"><table class="w-full text-sm"><thead class="sticky top-0 bg-surface-container-low"><tr class="text-left text-[11px] uppercase text-on-surface-variant border-b border-outline-variant"><th class="py-2 px-3">Plik</th><th class="py-2 px-3">Format</th><th class="py-2 px-3">Analiza</th></tr></thead><tbody>${docRows}</tbody></table></div>
    </div>
    <div class="flex flex-col gap-5">
@@ -507,7 +525,7 @@ function renderCoverage(d){
     </div>
    </div>
   </div>
-  ${(c.experts&&c.experts.length)?`<div class="mt-5 pt-4 border-t border-outline-variant"><div class="text-sm font-semibold text-primary mb-2">Panel ekspertów branżowych (${c.experts.length}) — każdy z osobną opinią w arkuszu</div><div class="flex gap-1.5 flex-wrap">${c.experts.map(e=>`<span class="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-secondary/10 text-secondary border border-secondary/30">${esc(e)}</span>`).join('')}</div></div>`:''}
+  ${(c.experts&&c.experts.length)?`<div class="mt-5 pt-4 border-t border-outline-variant"><div class="text-sm font-semibold text-primary mb-3">Panel ekspertów branżowych (${c.experts.length}) — kliknij eksperta, by zobaczyć jego wnioski</div><div class="flex flex-col gap-2">${c.experts.map(expCard).join('')}</div></div>`:''}
  </section>`;
 }
 

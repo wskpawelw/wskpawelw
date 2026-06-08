@@ -472,10 +472,33 @@ def coverage(path):
         line=" ".join(str(x) for x in r if x)
         if "RAZEM" in line.upper() and ("m²" in line or "m2" in line.lower()):
             cov["params"]=line.split("RAZEM",1)[-1].strip()[:140]; break
-    # E01-E10 — eksperci branżowi
+    # E01-E10 — eksperci branżowi: persona + wnioski (Element/Analiza/Ocena/Rekomendacja)
     EXP={"E01":"Prawnik zamówień (Pzp)","E02":"Radca umowy","E03":"Konstruktor","E04":"Architekt-konserwator",
          "E05":"Kosztorysant","E06":"Zakupowiec","E07":"Elektryk","E08":"Sanitarny","E09":"Wentylacja","E10":"Stolarka konserw."}
-    for s in wb.sheetnames:
-        for k,name in EXP.items():
-            if s.upper().startswith(k) and name not in cov["experts"]: cov["experts"].append(name)
+    for sn in sorted(wb.sheetnames):
+        key=sn.upper()[:3]
+        if key not in EXP: continue
+        rws=[[c.value for c in r] for r in wb[sn].iter_rows()]
+        osoba=""
+        for r in rws[:4]:
+            for c in r:
+                if c and isinstance(c,str) and len(str(c))>15 and not str(c).strip().startswith(("Lp","#")):
+                    cc=str(c)
+                    if any(w in cc.lower() for w in ("lat","mgr","inż","mec.","arch","radca","specjal","tech.")):
+                        cc=re.sub(r"^[^A-Za-zĄĆĘŁŃÓŚŹŻ]+","",cc)
+                        cc=re.sub(r"^E\d+\s*[—\-–:]\s*","",cc)
+                        osoba=cc.strip()[:120]; break
+            if osoba: break
+        hi=_hdr_idx(rws,"analiza eksperta","rekomendacj","element")
+        points=[]
+        if hi is not None:
+            head=[str(x).strip().lower() if x else "" for x in rws[hi]]
+            ce=_col(head,"element",default=1); ca=_col(head,"analiza"); co=_col(head,"ocena")
+            ck=_col(head,"konsekwen"); crk=_col(head,"rekomendacj"); cp=_col(head,"pytanie")
+            for r in rws[hi+1:]:
+                el=cell(r,ce,80); an=cell(r,ca,320)
+                if not (el or an): continue
+                points.append({"element":el,"analiza":an,"ocena":cell(r,co,40),
+                               "konsekwencja":cell(r,ck,90),"rekomendacja":cell(r,crk,160),"pytanie":cell(r,cp,130)})
+        cov["experts"].append({"key":key,"rola":EXP[key],"osoba":osoba,"points":points[:12]})
     return cov
