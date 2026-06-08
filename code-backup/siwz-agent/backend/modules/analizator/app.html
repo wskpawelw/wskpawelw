@@ -222,7 +222,7 @@ function card(a){const c=a.bid?'#0f7a4d':'#d35400';return `
   <div style="height:5px;background:${c}"></div>
   <div class="p-4">
    <div class="flex items-start justify-between gap-2">
-    <h4 class="font-bold text-primary leading-snug text-sm">${esc(shortName(a.project))}</h4>
+    <h4 class="font-bold text-primary leading-snug text-sm line-clamp-2">${esc(a.project)}</h4>
     <span class="text-[10px] font-extrabold px-2 py-0.5 rounded text-white whitespace-nowrap" style="background:${c}">${a.bid?'SKŁADAĆ':'DECYZJA'}</span></div>
    <div class="text-xl font-extrabold text-primary mt-2">${fmtMln(a.netto_od)}${a.netto_do?' – '+fmtMln(a.netto_do):''}</div>
    <div class="text-[11px] text-on-surface-variant">wartość szacunkowa netto</div>
@@ -272,10 +272,10 @@ function renderList(){
  else list.sort((a,b)=>b.mtime-a.mtime);
  $('#count').textContent='Wyświetlanie '+list.length+' z '+AUDITS.length+' wyników';
  rowsEl.innerHTML=list.map(a=>{
-  const score=Math.min(99,a.risks*9+a.krit*18+8);
+  const sv=a.sev||{};const score=Math.min(96,(sv['KRYTYCZNA']||0)*24+(sv['WYSOKA']||0)*12+((sv['SREDNIA']||sv['ŚREDNIA'])||0)*5+(sv['NISKA']||0)*1);
   const sc=score>=60?['#ffdad6','#93000a']:score>=35?['#fde68a','#92400e']:['#c7f3dc','#00391f'];
   return `<tr onclick="go('analiza','${a.id}')" class="border-b border-outline-variant hover:bg-surface-container-low cursor-pointer group">
-   <td class="p-3"><div class="font-medium text-on-surface group-hover:text-secondary">${esc(shortName(a.project))}</div>
+   <td class="p-3"><div class="font-medium text-on-surface group-hover:text-secondary">${esc(a.project)}</div>
     <div class="text-xs text-on-surface-variant">${esc(a.bzp||'—')} · ${a.mat_count} materiałów</div></td>
    <td class="p-3 font-semibold whitespace-nowrap tnum">${fmtMln(a.netto_od)}${a.netto_do?'–'+fmtMln(a.netto_do):''}</td>
    <td class="p-3 whitespace-nowrap tnum text-on-surface-variant">${esc(a.termin||'—')}</td>
@@ -291,17 +291,19 @@ VIEWS.analiza=async(app,id)=>{
  if(d.error){app.innerHTML='<div class="p-6 text-error">'+esc(d.error)+'</div>';return;}
  const v=d.value, m=d.meta; const bid=m.bid;
  const nod=v.netto_od,ndo=v.netto_do;
- const krit=d.risks.filter(r=>r.sev==='KRYTYCZNA').length;
- const score=Math.min(99,d.risks.length*9+krit*18+8);
+ const sev=d.sev||{};
+ const sKr=sev['KRYTYCZNA']||0,sWy=sev['WYSOKA']||0,sSr=(sev['SREDNIA']||sev['ŚREDNIA'])||0,sNi=sev['NISKA']||0;
+ const krit=sKr;
+ const score=Math.min(96,sKr*24+sWy*12+sSr*5+sNi*1);
  app.innerHTML=`
  <div class="flex items-center gap-2 text-sm text-on-surface-variant mb-2">
   <a onclick="go('przetargi')" class="hover:text-secondary cursor-pointer">Przetargi</a><span class="material-symbols-outlined text-[16px]">chevron_right</span>
-  <span class="text-on-surface">${esc(shortName(m.project))}</span></div>
+  <span class="text-on-surface">${esc(m.project)}</span></div>
  <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-6">
   <div><div class="flex items-center gap-2 mb-1">
     <span class="text-xs font-semibold text-secondary bg-secondary/10 px-2 py-0.5 rounded uppercase">Postępowanie publiczne</span>
     <span class="text-xs text-outline">${esc(m.bzp||'')}</span></div>
-   <h2 class="text-2xl md:text-3xl font-extrabold text-primary">${esc(shortName(m.project))}</h2></div>
+   <h2 class="text-2xl md:text-3xl font-extrabold text-primary leading-tight">${esc(m.project)}</h2></div>
   <div class="flex gap-2">
    <a href="#" onclick="dlExcel('${id}')" class="flex items-center gap-2 px-4 py-2 bg-surface border border-outline-variant rounded-lg text-sm hover:border-secondary transition"><span class="material-symbols-outlined text-[18px]">table_view</span>Arkusz Google</a>
    <div class="flex items-center gap-2 px-4 py-2 rounded-lg text-white font-semibold text-sm ${bid?'bg-tertiary':'bg-wsk-orange'}"><span class="material-symbols-outlined text-[18px] ms-fill">${bid?'thumb_up':'flag'}</span>${bid?'SKŁADAĆ':'DECYZJA'}</div>
@@ -324,13 +326,19 @@ VIEWS.analiza=async(app,id)=>{
    <div class="bg-surface border border-outline-variant rounded-xl p-6 shadow-ambient">
     <div class="flex items-center gap-2 mb-4 border-b border-outline-variant pb-2">
      <span class="material-symbols-outlined text-tertiary ms-fill">monitoring</span><h3 class="font-bold text-primary">Ocena ryzyka AI</h3></div>
-    <div class="flex items-end gap-4 mb-3"><span class="text-4xl font-extrabold" style="color:${score>=60?'#dc2626':score>=35?'#d97706':'#0f7a4d'}">${score}</span>
+    <div class="flex items-end gap-4 mb-1"><span class="text-4xl font-extrabold" style="color:${score>=60?'#dc2626':score>=35?'#d97706':'#0f7a4d'}">${score}</span>
      <span class="text-sm text-on-surface-variant mb-1">/100 · ${score>=60?'wysokie':score>=35?'umiarkowane':'niskie'} ryzyko</span></div>
-    <div class="w-full bg-surface-container rounded-full h-2 mb-4"><div class="h-2 rounded-full" style="width:${score}%;background:${score>=60?'#dc2626':score>=35?'#d97706':'#0f7a4d'}"></div></div>
+    <p class="text-xs text-on-surface-variant mb-3">Indeks ważony z <strong>${d.risks.length}</strong> flag ryzyka: krytyczne ×24, wysokie ×12, średnie ×5, niskie ×1 (max 96). To miara ryzyka technicznego/formalnego — <strong>nie</strong> rekomendacja. Decyzja „${bid?'SKŁADAĆ':'DECYZJA'}" dotyczy opłacalności i jest osobno.</p>
+    <div class="w-full bg-surface-container rounded-full h-2 mb-3"><div class="h-2 rounded-full" style="width:${score}%;background:${score>=60?'#dc2626':score>=35?'#d97706':'#0f7a4d'}"></div></div>
+    <div class="flex gap-1.5 flex-wrap mb-3">
+     ${sKr?`<span class="text-[11px] font-bold px-2 py-0.5 rounded-full" style="background:#dc26261a;color:#dc2626">${sKr} krytyczne ×24</span>`:''}
+     ${sWy?`<span class="text-[11px] font-bold px-2 py-0.5 rounded-full" style="background:#ea580c1a;color:#ea580c">${sWy} wysokie ×12</span>`:''}
+     ${sSr?`<span class="text-[11px] font-bold px-2 py-0.5 rounded-full" style="background:#d977061a;color:#d97706">${sSr} średnie ×5</span>`:''}
+     ${sNi?`<span class="text-[11px] font-bold px-2 py-0.5 rounded-full" style="background:#65a30d1a;color:#65a30d">${sNi} niskie ×1</span>`:''}
+    </div>
     <ul class="flex flex-col gap-2 text-sm">
      <li class="flex items-start gap-2"><span class="material-symbols-outlined text-[18px] text-tertiary">inventory_2</span>Materiały skompletowane: <strong>${d.materials.length}</strong> pozycji (M00)</li>
-     <li class="flex items-start gap-2"><span class="material-symbols-outlined text-[18px] text-secondary">price_check</span>Wycena rynkowa: <strong>${nod?'widełki OD–DO':'do uzupełnienia'}</strong></li>
-     <li class="flex items-start gap-2"><span class="material-symbols-outlined text-[18px]" style="color:#d35400">flag</span>Ryzyka krytyczne: <strong>${krit}</strong></li>
+     <li class="flex items-start gap-2"><span class="material-symbols-outlined text-[18px]" style="color:#d35400">flag</span>Ryzyka krytyczne: <strong>${krit}</strong> z ${d.risks.length}</li>
     </ul></div>
 
    <div class="rounded-xl p-6 text-white shadow-ambient relative overflow-hidden" style="background:#0d2b4e">
@@ -355,6 +363,8 @@ VIEWS.analiza=async(app,id)=>{
     <canvas id="c-cost" height="150"></canvas></div>
   </div>
  </div>
+
+ ${renderCoverage(d)}
 
  <!-- materiały -->
  <section class="bg-surface border border-outline-variant rounded-xl p-6 shadow-ambient mt-6">
@@ -400,6 +410,53 @@ function sevSummary(risks){const cnt={};risks.forEach(r=>cnt[r.sev]=(cnt[r.sev]|
   .map(([s,n])=>`<span class="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full" style="background:${(SEV[s]||'#64748b')}1a;color:${SEV[s]||'#64748b'}">${n} ${esc(s).toLowerCase()}</span>`).join('')||'';}
 function filtMat(){const q=$('#mq').value.toLowerCase();document.querySelectorAll('#mtb tr').forEach(r=>r.style.display=r.innerText.toLowerCase().includes(q)?'':'none');}
 function chipFilt(b,s){document.querySelectorAll('.chip').forEach(c=>c.classList.remove('ring-2','ring-secondary'));b.classList.add('ring-2','ring-secondary');document.querySelectorAll('#mtb tr').forEach(r=>r.style.display=(!s||r.dataset.s===s)?'':'none');}
+function covBadge(kind){
+ const map={vision:['vision OCR (Opus)','#7c3aed'],ocr:['OCR tekst','#0058be'],read:['przeczytane','#0f7a4d']};
+ const v=map[kind]||['—','#64748b'];
+ return `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap" style="background:${v[1]}1a;color:${v[1]}">${v[0]}</span>`;
+}
+function covStat(icon,val,label,color){return `<div class="rounded-xl border border-outline-variant p-3 bg-surface-container-low"><div class="flex items-center gap-2"><span class="material-symbols-outlined text-[20px]" style="color:${color}">${icon}</span><span class="text-2xl font-extrabold text-primary">${val}</span></div><div class="text-[11px] text-on-surface-variant mt-0.5">${esc(label)}</div></div>`;}
+function renderCoverage(d){
+ const c=d.coverage; if(!c||!c.documents||!c.documents.length) return '';
+ const ds=c.doc_stats||{}, cr=c.crossref||{};
+ const stColor=s=>/OK/i.test(s)?'#0f7a4d':/BRAK/i.test(s)?'#2563eb':'#db2777';
+ const docRows=c.documents.map(x=>`<tr class="border-b border-outline-variant align-top">
+   <td class="py-2 px-3 text-on-surface">${esc(x.plik)}${x.typ?`<div class="text-[11px] text-on-surface-variant">${esc(x.typ)}</div>`:''}</td>
+   <td class="py-2 px-3 text-xs text-on-surface-variant whitespace-nowrap">${esc(x.format)}</td>
+   <td class="py-2 px-3">${covBadge(x.kind)}${x.status?`<div class="text-[10px] text-on-surface-variant mt-0.5">${esc(x.status)}</div>`:''}</td></tr>`).join('');
+ const rozRows=(c.rozbieznosci||[]).map(r=>`<li class="flex items-start gap-2 py-1.5 border-b border-outline-variant last:border-0"><span class="text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 whitespace-nowrap" style="background:${stColor(r.status)}1a;color:${stColor(r.status)}">${esc(r.status||'—')}</span><div class="min-w-0"><span class="text-sm text-on-surface">${esc(r.element)}</span>${r.opis?`<div class="text-[11px] text-on-surface-variant">${esc(r.opis)}</div>`:''}</div></li>`).join('');
+ const brakiRows=(c.braki||[]).map(b=>`<li class="flex items-start gap-2 py-1.5 border-b border-outline-variant last:border-0"><span class="material-symbols-outlined text-[18px] text-secondary shrink-0">add_circle</span><div class="min-w-0"><span class="text-sm text-on-surface">${esc(b.pozycja)}</span>${b.wartosc?` <span class="text-xs text-on-surface-variant whitespace-nowrap">~${fmtPLN(b.wartosc)}</span>`:''}${b.uwaga?`<div class="text-[11px] text-on-surface-variant">${esc(b.uwaga)}</div>`:''}</div></li>`).join('');
+ return `<section class="bg-surface border border-outline-variant rounded-xl p-6 shadow-ambient mt-6">
+  <div class="flex items-center justify-between flex-wrap gap-2 mb-4 border-b border-outline-variant pb-3">
+   <div class="flex items-center gap-2"><span class="material-symbols-outlined text-secondary ms-fill">fact_check</span><h3 class="font-bold text-primary text-lg">Co zostało przeanalizowane</h3></div>
+   <span class="text-xs text-on-surface-variant">silnik: Opus 4.8 · OCR rysunków: ${esc(c.model||'vision')}</span></div>
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+   ${covStat('description',ds.total||0,'dokumentów wczytanych','#0058be')}
+   ${covStat('image_search',(c.ocr_rysunki&&c.ocr_rysunki.count)||0,'rysunków OCR (vision)','#7c3aed')}
+   ${covStat('gavel',(c.ocr_decyzje&&c.ocr_decyzje.count)||0,'decyzji/skanów OCR','#0d2b4e')}
+   ${covStat('compare_arrows',cr.count||0,'pozycji porównanych','#0f7a4d')}
+  </div>
+  <div class="grid lg:grid-cols-2 gap-6">
+   <div>
+    <div class="text-sm font-semibold text-primary mb-2">Dokumenty i sposób analizy
+     <span class="text-[11px] font-normal text-on-surface-variant">(${ds.vision||0} vision · ${ds.ocr||0} OCR tekst · ${ds.read||0} przeczytane)</span></div>
+    <div class="overflow-auto max-h-96 rounded-lg border border-outline-variant"><table class="w-full text-sm"><thead class="sticky top-0 bg-surface-container-low"><tr class="text-left text-[11px] uppercase text-on-surface-variant border-b border-outline-variant"><th class="py-2 px-3">Plik</th><th class="py-2 px-3">Format</th><th class="py-2 px-3">Analiza</th></tr></thead><tbody>${docRows}</tbody></table></div>
+   </div>
+   <div class="flex flex-col gap-5">
+    <div>
+     <div class="text-sm font-semibold text-primary mb-2">Rozbieżności wykryte <span class="text-[11px] font-normal text-on-surface-variant">(${(c.rozbieznosci||[]).length} · kontrola krzyżowa ${cr.ok||0} zgodne / ${cr.diff||0} rozbieżne)</span></div>
+     <ul class="max-h-44 overflow-auto rounded-lg border border-outline-variant px-3">${rozRows||'<li class="text-sm text-on-surface-variant py-3">Brak zarejestrowanych rozbieżności.</li>'}</ul>
+    </div>
+    <div>
+     <div class="text-sm font-semibold text-primary mb-2">Czego brakuje w przedmiarze <span class="text-[11px] font-normal text-on-surface-variant">(${(c.braki||[]).length} pozycji do doliczenia)</span></div>
+     <ul class="max-h-44 overflow-auto rounded-lg border border-outline-variant px-3">${brakiRows||'<li class="text-sm text-on-surface-variant py-3">Brak braków — przedmiar kompletny.</li>'}</ul>
+    </div>
+   </div>
+  </div>
+  ${(c.experts&&c.experts.length)?`<div class="mt-5 pt-4 border-t border-outline-variant"><div class="text-sm font-semibold text-primary mb-2">Panel ekspertów branżowych (${c.experts.length}) — każdy z osobną opinią w arkuszu</div><div class="flex gap-1.5 flex-wrap">${c.experts.map(e=>`<span class="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-secondary/10 text-secondary border border-secondary/30">${esc(e)}</span>`).join('')}</div></div>`:''}
+ </section>`;
+}
+
 async function dlExcel(id){
  const w=window.open('','_blank');
  if(w) w.document.write('<title>Arkusz Google…</title><div style="font-family:Inter,system-ui,sans-serif;padding:3rem;color:#0d2b4e"><h2>Otwieram audyt w Arkuszach Google…</h2><p style="color:#64748b">Generuję / odświeżam arkusz, chwila.</p></div>');

@@ -31,7 +31,9 @@ def list_audits():
             rek=d["meta"].get("rekomendacja","")
             bid=rek.upper().startswith("SK") and not rek.upper().startswith("NIE")
             nod,ndo=d["value"].get("netto_od"),d["value"].get("netto_do")
-            krit=sum(1 for r in d["risks"] if r["sev"]=="KRYTYCZNA")
+            sev={}
+            for r in d["risks"]: sev[r["sev"]]=sev.get(r["sev"],0)+1
+            krit=sev.get("KRYTYCZNA",0)
             items.append({
                 "id":audit_id(p),
                 "project":d["meta"].get("project","Audyt przetargowy"),
@@ -41,7 +43,7 @@ def list_audits():
                 "netto_od":nod,"netto_do":ndo,
                 "brutto_od":d["value"].get("brutto_od"),"brutto_do":d["value"].get("brutto_do"),
                 "mat_count":len(d["materials"]),"mat_total":d["mat_total"],
-                "risks":len(d["risks"]),"krit":krit,
+                "risks":len(d["risks"]),"krit":krit,"sev":sev,
                 "bid":bool(bid),"rek":rek,
                 "mtime":int(os.path.getmtime(p)),
             })
@@ -56,6 +58,13 @@ def full_audit(aid):
     rek=d["meta"].get("rekomendacja","")
     d["meta"]["id"]=aid
     d["meta"]["bid"]=rek.upper().startswith("SK") and not rek.upper().startswith("NIE")
+    try:
+        d["coverage"]=D.coverage(p)
+    except Exception as e:
+        print("coverage err",p,e, file=sys.stderr); d["coverage"]={}
+    sev={}
+    for r in d["risks"]: sev[r["sev"]]=sev.get(r["sev"],0)+1
+    d["sev"]=sev
     return d
 
 @app.get("/api/audits")

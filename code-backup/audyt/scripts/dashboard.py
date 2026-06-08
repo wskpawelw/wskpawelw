@@ -315,3 +315,127 @@ if __name__=="__main__":
     open(outp,"w",encoding="utf-8").write(render(d))
     print("OK ->",outp)
     print(f"  materiałów: {len(d['materials'])} | ryzyk: {len(d['risks'])} | grup kosztów: {len(d['groups'])} | wartość: {d['value']}")
+
+
+# ============ COVERAGE: co i jak zostało przeanalizowane (zakładka "Co przeanalizowano") ============
+def _sheet_rows(wb, *frags):
+    ws=find_sheet(wb, *frags)
+    if not ws: return []
+    return [[c.value for c in r] for r in ws.iter_rows()]
+
+def _hdr_idx(rows, *keys):
+    # naglowek = krotkie etykiety (<30 zn.); chroni przed zlapaniem banera-tytulu
+    keys=[k.lower() for k in keys]
+    for i,r in enumerate(rows[:8]):
+        cells=[str(x).strip().lower() if x else "" for x in r]
+        if any(any(k in c and len(c)<30 for c in cells) for k in keys): return i
+    return None
+
+def _col(head, *names, default=None):
+    for n in names:
+        for j,h in enumerate(head):
+            if n in h: return j
+    return default
+
+def coverage(path):
+    """Prowieniencja audytu: jakie dokumenty, czym przetworzone (OCR vision/tekst/przeczytane),
+    co porównane (cross-ref), rozbieżności, braki, eksperci. Czyta arkusze 04/X01/X02/X03/07/08/E*."""
+    from openpyxl import load_workbook
+    wb=load_workbook(path, data_only=True)
+    cov={"documents":[],"doc_stats":{},"ocr_rysunki":{},"ocr_decyzje":{},
+         "crossref":{},"rozbieznosci":[],"braki":[],"experts":[],"model":"Opus 4.8 (vision)"}
+    def cell(row,i,n=120):
+        return str(row[i])[:n] if i is not None and len(row)>i and row[i] not in (None,"") else ""
+    # 04 — inwentaryzacja dokumentów
+    rows=_sheet_rows(wb,"04_INWENTARYZACJA","INWENTARYZACJA")
+    hi=_hdr_idx(rows,"plik") if rows else None
+    if hi is not None:
+        head=[str(x).strip().lower() if x else "" for x in rows[hi]]
+        cp=_col(head,"plik"); ct=_col(head,"typ"); cf=_col(head,"format"); cfo=_col(head,"folder"); cs=_col(head,"status")
+        v=t=r=0
+        for row in rows[hi+1:]:
+            plik=cell(row,cp,120)
+            if not plik or plik.strip() in ("","#"): continue
+            st=cell(row,cs,40); low=st.lower()
+            kind="vision" if "vision" in low else ("ocr" if "ocr" in low else "read")
+            if kind=="vision": v+=1
+            elif kind=="ocr": t+=1
+            else: r+=1
+            cov["documents"].append({"plik":plik,"typ":cell(row,ct,90),"format":cell(row,cf,12),
+                                     "folder":cell(row,cfo,40),"status":st,"kind":kind})
+        cov["doc_stats"]={"total":len(cov["documents"]),"vision":v,"ocr":t,"read":r}
+    # X01 — OCR rysunków (vision)
+    rows=_sheet_rows(wb,"X01_OCR","OCR_PROJEKT","OCR_RYSUN")
+    if rows:
+        h1=" ".join(str(c) for c in rows[0] if c) if rows else ""
+        m=re.search(r"vision[^),]*",h1,re.I)
+        if m: cov["model"]=m.group(0).strip()
+        hi=_hdr_idx(rows,"nr rys","rys")
+        items=[]
+        if hi is not None:
+            head=[str(x).strip().lower() if x else "" for x in rows[hi]]
+            cn=_col(head,"nr rys","rys",default=0); cty=_col(head,"typ",default=1); cu=_col(head,"uwagi")
+            for row in rows[hi+1:]:
+                nr=cell(row,cn,24)
+                if not nr: continue
+                items.append({"nr":nr,"typ":cell(row,cty,14),"uwagi":cell(row,cu,60)})
+        cov["ocr_rysunki"]={"count":len(items),"items":items[:50]}
+    # X03 — OCR decyzji / skanów
+    rows=_sheet_rows(wb,"X03_OCR","OCR_DECYZJE","DECYZJE_SKAN")
+    if rows:
+        hi=_hdr_idx(rows,"dokument"); items=[]
+        if hi is not None:
+            head=[str(x).strip().lower() if x else "" for x in rows[hi]]
+            cd=_col(head,"dokument",default=0); csg=_col(head,"sygnatura",default=1); cst=_col(head,"status")
+            for row in rows[hi+1:]:
+                dk=cell(row,cd,60)
+                if not dk: continue
+                items.append({"dokument":dk,"sygnatura":cell(row,csg,30),"status":cell(row,cst,14)})
+        cov["ocr_decyzje"]={"count":len(items),"items":items[:30]}
+    # X02 — kontrola krzyżowa projekt vs przedmiar
+    rows=_sheet_rows(wb,"X02_CROSS","CROSS_REF")
+    if rows:
+        hi=_hdr_idx(rows,"poz. przedm","poz.przedm","przedm")
+        ok=diff=0; items=[]
+        if hi is not None:
+            head=[str(x).strip().lower() if x else "" for x in rows[hi]]
+            cst=_col(head,"status"); co=_col(head,"opis",default=1)
+            for row in rows[hi+1:]:
+                if not any(row): continue
+                st=cell(row,cst,18).upper()
+                if not st: continue
+                if "OK" in st: ok+=1
+                else: diff+=1
+                items.append({"opis":cell(row,co,60),"status":st})
+        cov["crossref"]={"count":ok+diff,"ok":ok,"diff":diff,"items":items[:50]}
+    # 07 — rozbieżności
+    rows=_sheet_rows(wb,"07_ROZBIEZ","ROZBIEZN")
+    hi=_hdr_idx(rows,"element") if rows else None
+    if hi is not None:
+        head=[str(x).strip().lower() if x else "" for x in rows[hi]]
+        ci=_col(head,"id",default=0); ce=_col(head,"element",default=1); cst=_col(head,"status"); cop=_col(head,"opis")
+        for row in rows[hi+1:]:
+            el=cell(row,ce,50)
+            if not el: continue
+            cov["rozbieznosci"].append({"id":cell(row,ci,8),"element":el,
+                "status":cell(row,cst,16),"opis":cell(row,cop,110)})
+        cov["rozbieznosci"]=cov["rozbieznosci"][:40]
+    # 08 — braki przedmiaru
+    rows=_sheet_rows(wb,"08_BRAKI","BRAKI_PRZEDMIAR")
+    hi=_hdr_idx(rows,"pozycja") if rows else None
+    if hi is not None:
+        head=[str(x).strip().lower() if x else "" for x in rows[hi]]
+        ci=_col(head,"id",default=0); cpz=_col(head,"pozycja",default=1); cw=_col(head,"wartość","wartosc"); cu=_col(head,"uwaga")
+        for row in rows[hi+1:]:
+            pz=cell(row,cpz,60)
+            if not pz: continue
+            cov["braki"].append({"id":cell(row,ci,8),"pozycja":pz,
+                "wartosc":num(row[cw]) if cw is not None and len(row)>cw else None,"uwaga":cell(row,cu,90)})
+        cov["braki"]=cov["braki"][:40]
+    # E01-E10 — eksperci branżowi
+    EXP={"E01":"Prawnik zamówień (Pzp)","E02":"Radca umowy","E03":"Konstruktor","E04":"Architekt-konserwator",
+         "E05":"Kosztorysant","E06":"Zakupowiec","E07":"Elektryk","E08":"Sanitarny","E09":"Wentylacja","E10":"Stolarka konserw."}
+    for s in wb.sheetnames:
+        for k,name in EXP.items():
+            if s.upper().startswith(k) and name not in cov["experts"]: cov["experts"].append(name)
+    return cov
