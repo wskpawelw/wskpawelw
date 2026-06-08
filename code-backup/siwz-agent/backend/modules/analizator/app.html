@@ -303,7 +303,7 @@ VIEWS.analiza=async(app,id)=>{
     <span class="text-xs text-outline">${esc(m.bzp||'')}</span></div>
    <h2 class="text-2xl md:text-3xl font-extrabold text-primary">${esc(shortName(m.project))}</h2></div>
   <div class="flex gap-2">
-   <a href="#" onclick="dlExcel('${id}')" class="flex items-center gap-2 px-4 py-2 bg-surface border border-outline-variant rounded-lg text-sm hover:border-secondary transition"><span class="material-symbols-outlined text-[18px]">table_view</span>Plik Excel</a>
+   <a href="#" onclick="dlExcel('${id}')" class="flex items-center gap-2 px-4 py-2 bg-surface border border-outline-variant rounded-lg text-sm hover:border-secondary transition"><span class="material-symbols-outlined text-[18px]">table_view</span>Arkusz Google</a>
    <div class="flex items-center gap-2 px-4 py-2 rounded-lg text-white font-semibold text-sm ${bid?'bg-tertiary':'bg-wsk-orange'}"><span class="material-symbols-outlined text-[18px] ms-fill">${bid?'thumb_up':'flag'}</span>${bid?'SKŁADAĆ':'DECYZJA'}</div>
   </div></div>
 
@@ -400,7 +400,15 @@ function sevSummary(risks){const cnt={};risks.forEach(r=>cnt[r.sev]=(cnt[r.sev]|
   .map(([s,n])=>`<span class="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full" style="background:${(SEV[s]||'#64748b')}1a;color:${SEV[s]||'#64748b'}">${n} ${esc(s).toLowerCase()}</span>`).join('')||'';}
 function filtMat(){const q=$('#mq').value.toLowerCase();document.querySelectorAll('#mtb tr').forEach(r=>r.style.display=r.innerText.toLowerCase().includes(q)?'':'none');}
 function chipFilt(b,s){document.querySelectorAll('.chip').forEach(c=>c.classList.remove('ring-2','ring-secondary'));b.classList.add('ring-2','ring-secondary');document.querySelectorAll('#mtb tr').forEach(r=>r.style.display=(!s||r.dataset.s===s)?'':'none');}
-function dlExcel(id){alert('Plik źródłowy: '+id+'.xlsx\\n(pobieranie podłączymy gdy aplikacja pójdzie na audyt.wskonsorcjum.pl za logowaniem)');}
+async function dlExcel(id){
+ const w=window.open('','_blank');
+ if(w) w.document.write('<title>Arkusz Google…</title><div style="font-family:Inter,system-ui,sans-serif;padding:3rem;color:#0d2b4e"><h2>Otwieram audyt w Arkuszach Google…</h2><p style="color:#64748b">Generuję / odświeżam arkusz, chwila.</p></div>');
+ try{
+  const r=await (await fetch(API+'/sheet/'+encodeURIComponent(id))).json();
+  if(r.url){ if(w) w.location.href=r.url; else window.open(r.url,'_blank'); }
+  else { const m='Nie udało się otworzyć arkusza: '+(r.error||'błąd'); if(w) w.document.body.innerHTML='<div style="font-family:sans-serif;padding:3rem;color:#b91c1c">'+m+'</div>'; else alert(m); }
+ }catch(e){ if(w) w.document.body.innerHTML='<div style="font-family:sans-serif;padding:3rem;color:#b91c1c">Błąd sieci przy otwieraniu arkusza.</div>'; }
+}
 
 // ================= NOWA ANALIZA
 VIEWS.nowa=async(app)=>{
