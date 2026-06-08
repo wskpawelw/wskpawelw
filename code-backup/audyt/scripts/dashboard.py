@@ -176,11 +176,30 @@ def parse(path):
     # --- pytania (23) ---
     s23=find_sheet(wb,"23_PYTANIA","PYTANIA")
     if s23:
-        for r in cells(s23):
-            for x in r:
-                if x and isinstance(x,str) and (x.strip().startswith(("Prosimy","Czy","Wnosimy","P-")) and len(x)>25):
-                    d["questions"].append(x.strip()[:260])
-        d["questions"]=d["questions"][:6]
+        rows=cells(s23)
+        # tabela: kolumna "Treść pytania" (gotowe); pomijamy ODPOWIEDZIANE (zamknięte)
+        hi=None
+        for i,r in enumerate(rows[:6]):
+            cl=[str(x).strip().lower() if x else "" for x in r]
+            if any(("tre" in c and "pyt" in c) or c=="pytanie" for c in cl): hi=i; break
+        if hi is not None:
+            head=[str(x).strip().lower() if x else "" for x in rows[hi]]
+            ctr=None
+            for j,h in enumerate(head):
+                if ("tre" in h and "pyt" in h) or h=="pytanie": ctr=j; break
+            for r in rows[hi+1:]:
+                if ctr is None or len(r)<=ctr: continue
+                q=r[ctr]
+                if not q or not isinstance(q,str): continue
+                q=q.strip()
+                if len(q)<15 or q.upper().startswith(("ODPOWIEDZIAN","ODP.")): continue
+                d["questions"].append(q[:400])
+        if not d["questions"]:  # fallback heurystyczny (stary)
+            for r in rows:
+                for x in r:
+                    if x and isinstance(x,str) and x.strip().startswith(("Prosimy","Czy","Wnosimy","P-")) and len(x)>25:
+                        d["questions"].append(x.strip()[:400])
+        d["questions"]=d["questions"][:15]
     return d
 
 PLN=lambda v: ("{:,.0f}".format(v).replace(","," ")+" zł") if isinstance(v,(int,float)) else "—"

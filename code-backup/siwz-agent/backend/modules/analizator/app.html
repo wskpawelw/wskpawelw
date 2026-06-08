@@ -380,8 +380,11 @@ VIEWS.analiza=async(app,id)=>{
   <div class="text-xs text-on-surface-variant mt-2">Razem ${d.materials.length} pozycji · wartość M00 <strong class="text-primary">${fmtPLN(d.mat_total)}</strong></div></section>
 
  ${d.questions&&d.questions.length?`<section class="bg-surface border border-outline-variant rounded-xl p-6 shadow-ambient mt-6">
-  <h3 class="font-bold text-primary mb-2">Gotowe pytania do zamawiającego</h3>
-  <ul class="divide-y divide-outline-variant">${d.questions.map(q=>`<li class="flex gap-3 py-2.5"><span class="material-symbols-outlined text-[18px] text-secondary shrink-0 mt-0.5">help</span><span class="text-sm text-on-surface-variant leading-relaxed">${esc(q)}</span></li>`).join('')}</ul></section>`:''}
+  <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
+   <h3 class="font-bold text-primary">Gotowe pytania do zamawiającego <span class="text-sm font-normal text-on-surface-variant">(${d.questions.length})</span></h3>
+   <button onclick="openPismo('${(d.meta&&d.meta.id)||''}')" class="flex items-center gap-2 px-4 py-2 bg-secondary text-white rounded-lg text-sm font-semibold hover:bg-secondary/90 transition"><span class="material-symbols-outlined text-[18px]">description</span>Pismo do zamawiającego (Google Docs)</button></div>
+  <ul class="divide-y divide-outline-variant">${d.questions.map(q=>`<li class="flex gap-3 py-2.5"><span class="material-symbols-outlined text-[18px] text-secondary shrink-0 mt-0.5">help</span><span class="text-sm text-on-surface-variant leading-relaxed">${esc(q)}</span></li>`).join('')}</ul>
+  <p class="text-[11px] text-on-surface-variant mt-3">Pismo = gotowy „Wniosek o wyjaśnienie treści SWZ" (art. 135 Pzp) z danymi zamawiającego i pytaniami — otwiera się w Google Docs do edycji i wysłki.</p></section>`:''}
  `;
  // koszty chart
  const g=d.groups||[];
@@ -427,6 +430,17 @@ async function openDoc(aid,el){
   if(r.url){ if(w) w.location.href=r.url; else window.open(r.url,'_blank'); }
   else { const msg=r.error==='no_source'?'Ten audyt nie ma jeszcze podpiętego źródłowego folderu Google Drive — podaj link do folderu, a dokumenty staną się klikalne.':('Nie udało się otworzyć: '+(r.error||'błąd'));
    if(w) w.document.body.innerHTML='<div style="font-family:Inter,sans-serif;padding:3rem;color:#92400e">'+msg+'</div>'; else alert(msg); }
+ }catch(e){ if(w) w.document.body.innerHTML='<div style="font-family:sans-serif;padding:3rem;color:#b91c1c">Błąd sieci.</div>'; }
+}
+
+async function openPismo(id){
+ if(!id){alert('Brak ID audytu');return;}
+ const w=window.open('','_blank');
+ if(w) w.document.write('<title>Pismo…</title><div style="font-family:Inter,system-ui,sans-serif;padding:3rem;color:#0d2b4e"><h2>Tworzę pismo w Google Docs…</h2><p style="color:#64748b">Składam „Wniosek o wyjaśnienie SWZ" z pytaniami, chwila.</p></div>');
+ try{
+  const r=await (await fetch(API+'/pismo/'+encodeURIComponent(id))).json();
+  if(r.url){ if(w) w.location.href=r.url; else window.open(r.url,'_blank'); }
+  else { const msg='Nie udało się utworzyć pisma: '+(r.error||'błąd'); if(w) w.document.body.innerHTML='<div style="font-family:Inter,sans-serif;padding:3rem;color:#92400e">'+msg+'</div>'; else alert(msg); }
  }catch(e){ if(w) w.document.body.innerHTML='<div style="font-family:sans-serif;padding:3rem;color:#b91c1c">Błąd sieci.</div>'; }
 }
 

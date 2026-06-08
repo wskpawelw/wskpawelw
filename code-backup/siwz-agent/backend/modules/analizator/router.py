@@ -290,3 +290,96 @@ def api_docfile(aid: str, q: str = Query(""), user=Depends(get_current_user)):
     if res.get("error")=="no_source":
         return JSONResponse({"error": "no_source"}, status_code=404)
     return JSONResponse(res)
+
+
+# ---- Pismo "Wniosek o wyjaśnienie treści SWZ" -> Google Docs (z pytań audytu) ----
+_PISMO_CACHE = os.path.join(os.path.dirname(__file__), "pisma_map.json")
+_DOC_MIME = "application/vnd.google-apps.document"
+
+
+def _meta_get(metryka, *frags):
+    for m in metryka or []:
+        if any(f in (m.get("pole") or "").lower() for f in frags):
+            return m.get("wartosc") or ""
+    return ""
+
+
+def _build_pismo_html(aid, d):
+    import html as _h
+    meta = (d.get("coverage") or {}).get("metryka", [])
+    zam = _meta_get(meta, "zamawiaj")
+    nazwa = _meta_get(meta, "nazwa zadania", "nazwa post", "przedmiot") or (d.get("meta") or {}).get("project", "")
+    nr = _meta_get(meta, "nr post", "oznaczenie spraw", "numer post", "znak spraw") or (d.get("meta") or {}).get("bzp", "")
+    qs = d.get("questions") or []
+    items = "".join("<li style=\"margin-bottom:8px\">%s</li>" % _h.escape(str(q)) for q in qs)
+    e = lambda x: _h.escape(str(x or ""))
+    return (
+        "<html><head><meta charset=\"utf-8\"></head>"
+        "<body style=\"font-family:'Times New Roman',serif;font-size:12pt;line-height:1.5\">"
+        "<p>…………………………, dnia ……………………</p>"
+        "<p><b>WSK Konsorcjum</b><br>[adres Wykonawcy]<br>NIP: …………………………</p>"
+        "<p style=\"text-align:right;margin-top:24px\"><b>Do:</b><br>" + (e(zam) or "[Zamawiający]") + "</p>"
+        "<p style=\"margin-top:24px\"><b>Dotyczy:</b> postępowania pn. „" + e(nazwa) + "”<br>"
+        "<b>Nr postępowania:</b> " + (e(nr) or "—") + "</p>"
+        "<h2 style=\"text-align:center;margin-top:24px\">WNIOSEK O WYJAŚNIENIE TREŚCI SWZ</h2>"
+        "<p>Działając w imieniu Wykonawcy, na podstawie art. 135 ust. 1 ustawy z dnia 11 września 2019 r. – "
+        "Prawo zamówień publicznych, zwracamy się z wnioskiem o wyjaśnienie treści Specyfikacji Warunków "
+        "Zamówienia (SWZ) w następującym zakresie:</p>"
+        "<ol>" + items + "</ol>"
+        "<p style=\"margin-top:16px\">Mając na uwadze powyższe, wnosimy o udzielenie wyjaśnień, a w razie "
+        "potrzeby o odpowiednie przedłużenie terminu składania ofert.</p>"
+        "<p style=\"margin-top:40px\">Z poważaniem,</p>"
+        "<p style=\"margin-top:32px\">……………………………………………<br>(podpis osoby upoważnionej)</p>"
+        "</body></html>"
+    )
+
+
+def _ensure_pismo(aid):
+    path = os.path.join(_AUDYT_OUT, aid + ".xlsx")
+    if not os.path.exists(path):
+        return None
+    d = ENG.full_audit(aid)
+    if not d or not (d.get("questions")):
+        return {"error": "no_questions"}
+    from googleapiclient.http import MediaInMemoryUpload
+    html_doc = _build_pismo_html(aid, d)
+    mtime = int(os.path.getmtime(path))
+    with _sheet_lock:
+        try:
+            cache = json.load(open(_PISMO_CACHE, encoding="utf-8"))
+        except Exception:
+            cache = {}
+        ent = cache.get(aid) or {}
+        fid = ent.get("id")
+        drv = _drive()
+        media = MediaInMemoryUpload(html_doc.encode("utf-8"), mimetype="text/html", resumable=False)
+        if not fid:
+            f = drv.files().create(
+                body={"name": aid + "_pismo", "mimeType": _DOC_MIME, "parents": [_folder_id()]},
+                media_body=media, supportsAllDrives=True, fields="id").execute()
+            fid = f["id"]; _grant(fid)
+        elif ent.get("mtime") != mtime:
+            drv.files().update(fileId=fid, media_body=media, supportsAllDrives=True, fields="id").execute()
+            _grant(fid)
+        cache[aid] = {"id": fid, "mtime": mtime}
+        try:
+            json.dump(cache, open(_PISMO_CACHE, "w", encoding="utf-8"))
+        except Exception as e:
+            print("pismo cache err", e, file=sys.stderr)
+    return {"url": "https://docs.google.com/document/d/%s/edit" % fid}
+
+
+@router.get("/api/analizator/pismo/{aid}")
+def api_pismo(aid: str, user=Depends(get_current_user)):
+    if not re.match(r"^AUDYT_[A-Za-z0-9_]+$", aid):
+        return JSONResponse({"error": "Zła nazwa audytu."}, status_code=400)
+    try:
+        res = _ensure_pismo(aid)
+    except Exception as e:
+        print("pismo err", aid, e, file=sys.stderr)
+        return JSONResponse({"error": "Nie udało się utworzyć pisma."}, status_code=502)
+    if not res:
+        return JSONResponse({"error": "Brak pliku audytu."}, status_code=404)
+    if res.get("error") == "no_questions":
+        return JSONResponse({"error": "Ten audyt nie ma gotowych pytań do zamawiającego."}, status_code=404)
+    return JSONResponse(res)
