@@ -320,6 +320,8 @@ VIEWS.analiza=async(app,id)=>{
   ${kpi('event','Termin / wadium',esc(m.termin||'—'),'wadium '+esc(m.wadium||'—'),'#0d2b4e')}
  </div>
 
+ ${renderMetryka(d)}
+
  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
   <!-- lewa: zgodność + strcategia -->
   <div class="lg:col-span-5 flex flex-col gap-6">
@@ -416,12 +418,43 @@ function covBadge(kind){
  return `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap" style="background:${v[1]}1a;color:${v[1]}">${v[0]}</span>`;
 }
 function covStat(icon,val,label,color){return `<div class="rounded-xl border border-outline-variant p-3 bg-surface-container-low"><div class="flex items-center gap-2"><span class="material-symbols-outlined text-[20px]" style="color:${color}">${icon}</span><span class="text-2xl font-extrabold text-primary">${val}</span></div><div class="text-[11px] text-on-surface-variant mt-0.5">${esc(label)}</div></div>`;}
+async function openDoc(aid,el){
+ const q=el.getAttribute('data-q')||'';
+ const w=window.open('','_blank');
+ if(w) w.document.write('<title>Dokument…</title><div style="font-family:Inter,system-ui,sans-serif;padding:3rem;color:#0d2b4e"><h2>Szukam dokumentu w Google Drive…</h2></div>');
+ try{
+  const r=await (await fetch(API+'/docfile/'+encodeURIComponent(aid)+'?q='+encodeURIComponent(q))).json();
+  if(r.url){ if(w) w.location.href=r.url; else window.open(r.url,'_blank'); }
+  else { const msg=r.error==='no_source'?'Ten audyt nie ma jeszcze podpiętego źródłowego folderu Google Drive — podaj link do folderu, a dokumenty staną się klikalne.':('Nie udało się otworzyć: '+(r.error||'błąd'));
+   if(w) w.document.body.innerHTML='<div style="font-family:Inter,sans-serif;padding:3rem;color:#92400e">'+msg+'</div>'; else alert(msg); }
+ }catch(e){ if(w) w.document.body.innerHTML='<div style="font-family:sans-serif;padding:3rem;color:#b91c1c">Błąd sieci.</div>'; }
+}
+
+function renderMetryka(d){
+ const c=d.coverage||{}, mk=c.metryka||[];
+ if(!mk.length) return '';
+ const row=x=>`<div class="grid grid-cols-[9.5rem,1fr] gap-3 py-2 px-3 border-b border-outline-variant last:border-0"><span class="text-xs font-semibold text-on-surface-variant">${esc(x.pole)}</span><span class="text-sm text-on-surface">${esc(x.wartosc)}</span></div>`;
+ const half=Math.ceil(mk.length/2);
+ const colA=mk.slice(0,half).map(row).join(''), colB=mk.slice(half).map(row).join('');
+ const dec=(c.ocr_decyzje&&c.ocr_decyzje.items)||[];
+ const decRows=dec.map(z=>`<li class="flex items-start gap-2 py-1.5 border-b border-outline-variant last:border-0"><span class="material-symbols-outlined text-[18px] text-tertiary shrink-0">verified</span><div class="min-w-0"><span class="text-sm font-medium text-on-surface">${esc(z.dokument)}</span>${z.sygnatura?` <span class="text-xs text-on-surface-variant">${esc(z.sygnatura)}</span>`:''}${z.status?` <span class="text-[10px] font-bold px-1.5 py-0.5 rounded" style="background:#0f7a4d1a;color:#0f7a4d">${esc(z.status)}</span>`:''}</div></li>`).join('');
+ return `<section class="bg-surface border border-outline-variant rounded-xl p-6 shadow-ambient mb-6">
+  <div class="flex items-center justify-between flex-wrap gap-2 mb-4 border-b border-outline-variant pb-3">
+   <div class="flex items-center gap-2"><span class="material-symbols-outlined text-secondary ms-fill">description</span><h3 class="font-bold text-primary text-lg">Dane projektu — metryka postępowania</h3></div>
+   ${c.params?`<span class="text-xs text-on-surface-variant"><span class="material-symbols-outlined text-[15px] align-middle">straighten</span> ${esc(c.params)}</span>`:''}</div>
+  <div class="grid lg:grid-cols-2 gap-x-8 gap-y-0">
+   <div class="rounded-lg border border-outline-variant overflow-hidden mb-4 lg:mb-0">${colA}</div>
+   <div class="rounded-lg border border-outline-variant overflow-hidden">${colB}</div></div>
+  ${decRows?`<div class="mt-5 pt-4 border-t border-outline-variant"><div class="text-sm font-semibold text-primary mb-2 flex items-center gap-1"><span class="material-symbols-outlined text-[18px] text-tertiary">gavel</span>Pozwolenia i decyzje (${dec.length})</div><ul class="rounded-lg border border-outline-variant px-3">${decRows}</ul></div>`:''}
+ </section>`;
+}
+
 function renderCoverage(d){
  const c=d.coverage; if(!c||!c.documents||!c.documents.length) return '';
- const ds=c.doc_stats||{}, cr=c.crossref||{};
+ const ds=c.doc_stats||{}, cr=c.crossref||{}; const aid=(d.meta&&d.meta.id)||'';
  const stColor=s=>/OK/i.test(s)?'#0f7a4d':/BRAK/i.test(s)?'#2563eb':'#db2777';
- const docRows=c.documents.map(x=>`<tr class="border-b border-outline-variant align-top">
-   <td class="py-2 px-3 text-on-surface">${esc(x.plik)}${x.typ?`<div class="text-[11px] text-on-surface-variant">${esc(x.typ)}</div>`:''}</td>
+ const docRows=c.documents.map(x=>`<tr class="border-b border-outline-variant align-top hover:bg-surface-container-low cursor-pointer group/doc" onclick="openDoc('${aid}',this)" data-q="${esc(x.plik)}" title="Otwórz dokument w Google Drive">
+   <td class="py-2 px-3 text-on-surface"><span class="group-hover/doc:text-secondary">${esc(x.plik)}</span> <span class="material-symbols-outlined text-[14px] text-secondary align-middle opacity-0 group-hover/doc:opacity-100">open_in_new</span>${x.typ?`<div class="text-[11px] text-on-surface-variant">${esc(x.typ)}</div>`:''}</td>
    <td class="py-2 px-3 text-xs text-on-surface-variant whitespace-nowrap">${esc(x.format)}</td>
    <td class="py-2 px-3">${covBadge(x.kind)}${x.status?`<div class="text-[10px] text-on-surface-variant mt-0.5">${esc(x.status)}</div>`:''}</td></tr>`).join('');
  const rozRows=(c.rozbieznosci||[]).map(r=>`<li class="flex items-start gap-2 py-1.5 border-b border-outline-variant last:border-0"><span class="text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 whitespace-nowrap" style="background:${stColor(r.status)}1a;color:${stColor(r.status)}">${esc(r.status||'—')}</span><div class="min-w-0"><span class="text-sm text-on-surface">${esc(r.element)}</span>${r.opis?`<div class="text-[11px] text-on-surface-variant">${esc(r.opis)}</div>`:''}</div></li>`).join('');

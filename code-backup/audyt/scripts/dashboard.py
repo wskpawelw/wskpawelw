@@ -343,7 +343,8 @@ def coverage(path):
     from openpyxl import load_workbook
     wb=load_workbook(path, data_only=True)
     cov={"documents":[],"doc_stats":{},"ocr_rysunki":{},"ocr_decyzje":{},
-         "crossref":{},"rozbieznosci":[],"braki":[],"experts":[],"model":"Opus 4.8 (vision)"}
+         "crossref":{},"rozbieznosci":[],"braki":[],"experts":[],"model":"Opus 4.8 (vision)",
+         "metryka":[],"params":""}
     def cell(row,i,n=120):
         return str(row[i])[:n] if i is not None and len(row)>i and row[i] not in (None,"") else ""
     # 04 — inwentaryzacja dokumentów
@@ -432,6 +433,26 @@ def coverage(path):
             cov["braki"].append({"id":cell(row,ci,8),"pozycja":pz,
                 "wartosc":num(row[cw]) if cw is not None and len(row)>cw else None,"uwaga":cell(row,cu,90)})
         cov["braki"]=cov["braki"][:40]
+    # 02 — metryczka: pełne dane postępowania (zamawiający, tryb, CPV, projektanci, pozwolenia...)
+    rows=_sheet_rows(wb,"02_METRYCZKA","METRYCZKA")
+    hi=_hdr_idx(rows,"pole","parametr","atrybut") if rows else None
+    if hi is not None:
+        head=[str(x).strip().lower() if x else "" for x in rows[hi]]
+        cpo=_col(head,"pole","parametr","atrybut",default=1); cwa=_col(head,"wartość","wartosc",default=2)
+        seen=set()
+        for row in rows[hi+1:]:
+            pole=cell(row,cpo,60); war=cell(row,cwa,320)
+            if not (pole and war): continue
+            if pole.lower() in ("pole","parametr","atrybut","#","wartość","wartosc"): continue
+            k=pole.lower()
+            if k in seen: continue
+            seen.add(k)
+            cov["metryka"].append({"pole":pole,"wartosc":war})
+    # parametry obiektu (powierzchnia/kubatura) z 10_STREFY RAZEM
+    for r in (_sheet_rows(wb,"10_STREFY","STREFY_POWIER") or []):
+        line=" ".join(str(x) for x in r if x)
+        if "RAZEM" in line.upper() and ("m²" in line or "m2" in line.lower()):
+            cov["params"]=line.split("RAZEM",1)[-1].strip()[:140]; break
     # E01-E10 — eksperci branżowi
     EXP={"E01":"Prawnik zamówień (Pzp)","E02":"Radca umowy","E03":"Konstruktor","E04":"Architekt-konserwator",
          "E05":"Kosztorysant","E06":"Zakupowiec","E07":"Elektryk","E08":"Sanitarny","E09":"Wentylacja","E10":"Stolarka konserw."}

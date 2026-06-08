@@ -208,3 +208,85 @@ def api_sheet(aid: str, user=Depends(get_current_user)):
     if not url:
         return JSONResponse({"error": "Brak pliku xlsx dla tego audytu."}, status_code=404)
     return JSONResponse({"url": url})
+
+
+# ---- Otwieranie dokumentu źródłowego z Google Drive (klikalne dokumenty w "Co przeanalizowane") ----
+# Mapowanie audyt -> źródłowy folder Drive (audit nie zapisuje go sam). Format:
+#   { "AUDYT_X": {"folder_id": "<id folderu>", "drive_id": "<id Shared Drive lub pusty>"} }
+_SOURCES = os.path.join(os.path.dirname(__file__), "audit_sources.json")
+_files_cache = {}   # aid -> [{"id","name"}...] (rekursywny indeks plików folderu)
+
+
+def _load_sources():
+    try:
+        return json.load(open(_SOURCES, encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def _walk(folder_id, drive_id, depth=4, acc=None):
+    if acc is None: acc=[]
+    if depth < 0 or len(acc) > 600: return acc
+    drv=_drive()
+    kw=dict(q="'%s' in parents and trashed=false" % folder_id, fields="files(id,name,mimeType)",
+            pageSize=200, supportsAllDrives=True, includeItemsFromAllDrives=True)
+    if drive_id: kw.update(corpora="drive", driveId=drive_id)
+    page=None
+    while True:
+        if page: kw["pageToken"]=page
+        r=drv.files().list(**kw).execute()
+        for f in r.get("files", []):
+            if f.get("mimeType")=="application/vnd.google-apps.folder":
+                _walk(f["id"], drive_id, depth-1, acc)
+            else:
+                acc.append({"id":f["id"],"name":f["name"]})
+        page=r.get("nextPageToken")
+        if not page: break
+    return acc
+
+
+_norm_re=re.compile(r"[^a-z0-9ąćęłńóśźż]+")
+def _tokens(s):
+    s=(s or "").lower().replace("ł","l")
+    return set(t for t in _norm_re.split(s) if len(t)>=3)
+
+
+def _resolve_doc(aid, query):
+    src=_load_sources().get(aid)
+    if not src or not src.get("folder_id"):
+        return {"error": "no_source"}
+    fid=src["folder_id"]; did=src.get("drive_id","")
+    files=_files_cache.get(aid)
+    if files is None:
+        files=_walk(fid, did)
+        _files_cache[aid]=files
+    folder_url="https://drive.google.com/drive/folders/%s" % fid
+    if not files:
+        return {"url": folder_url, "match": "folder"}
+    qt=_tokens(query)
+    best=None; best_score=0
+    for f in files:
+        ft=_tokens(f["name"])
+        if not ft: continue
+        inter=len(qt & ft)
+        score=inter/max(1, min(len(qt), len(ft)))
+        if inter>0 and score>best_score:
+            best_score=score; best=f
+    if best and best_score>=0.34:
+        return {"url": "https://drive.google.com/file/d/%s/view" % best["id"],
+                "match": "file", "name": best["name"]}
+    return {"url": folder_url, "match": "folder"}
+
+
+@router.get("/api/analizator/docfile/{aid}")
+def api_docfile(aid: str, q: str = Query(""), user=Depends(get_current_user)):
+    if not re.match(r"^AUDYT_[A-Za-z0-9_]+$", aid):
+        return JSONResponse({"error": "Zła nazwa audytu."}, status_code=400)
+    try:
+        res=_resolve_doc(aid, q)
+    except Exception as e:
+        print("docfile err", aid, e, file=sys.stderr)
+        return JSONResponse({"error": "Błąd odczytu folderu Drive."}, status_code=502)
+    if res.get("error")=="no_source":
+        return JSONResponse({"error": "no_source"}, status_code=404)
+    return JSONResponse(res)
