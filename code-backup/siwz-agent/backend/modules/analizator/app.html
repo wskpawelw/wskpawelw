@@ -428,7 +428,14 @@ async function openDoc(aid,el){
  try{
   const r=await (await fetch(API+'/docfile/'+encodeURIComponent(aid)+'?q='+encodeURIComponent(q))).json();
   if(r.url){ if(w) w.location.href=r.url; else window.open(r.url,'_blank'); }
-  else { const msg=r.error==='no_source'?'Ten audyt nie ma jeszcze podpiętego źródłowego folderu Google Drive — podaj link do folderu, a dokumenty staną się klikalne.':('Nie udało się otworzyć: '+(r.error||'błąd'));
+  else if(r.error==='no_source'){
+   if(w) w.close();
+   const furl=prompt('Ten audyt nie ma podpiętego folderu źródłowego.\nWklej link do folderu Google Drive z dokumentacją tego przetargu (raz na audyt):');
+   if(!furl) return;
+   const sr=await (await fetch(API+'/source/'+encodeURIComponent(aid),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:furl})})).json();
+   if(sr.ok){ openDoc(aid,el); } else { alert(sr.error||'Nie udało się podpiąć folderu.'); }
+  }
+  else { const msg='Nie udało się otworzyć: '+(r.error||'błąd');
    if(w) w.document.body.innerHTML='<div style="font-family:Inter,sans-serif;padding:3rem;color:#92400e">'+msg+'</div>'; else alert(msg); }
  }catch(e){ if(w) w.document.body.innerHTML='<div style="font-family:sans-serif;padding:3rem;color:#b91c1c">Błąd sieci.</div>'; }
 }

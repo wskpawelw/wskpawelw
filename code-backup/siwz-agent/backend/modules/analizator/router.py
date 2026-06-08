@@ -231,6 +231,7 @@ def _walk(folder_id, drive_id, depth=4, acc=None):
     kw=dict(q="'%s' in parents and trashed=false" % folder_id, fields="files(id,name,mimeType)",
             pageSize=200, supportsAllDrives=True, includeItemsFromAllDrives=True)
     if drive_id: kw.update(corpora="drive", driveId=drive_id)
+    else: kw.update(corpora="allDrives")
     page=None
     while True:
         if page: kw["pageToken"]=page
@@ -383,3 +384,36 @@ def api_pismo(aid: str, user=Depends(get_current_user)):
     if res.get("error") == "no_questions":
         return JSONResponse({"error": "Ten audyt nie ma gotowych pytań do zamawiającego."}, status_code=404)
     return JSONResponse(res)
+
+
+_SA_EMAIL = "crewai-wsk@erp-bud2.iam.gserviceaccount.com"
+
+
+@router.post("/api/analizator/source/{aid}")
+async def api_set_source(aid: str, request: Request, user=Depends(get_current_user)):
+    if not re.match(r"^AUDYT_[A-Za-z0-9_]+$", aid):
+        return JSONResponse({"error": "Zła nazwa audytu."}, status_code=400)
+    body = await request.json()
+    url = (body.get("url") or "").strip()
+    m = (re.search(r"/folders/([A-Za-z0-9_-]{20,})", url)
+         or re.search(r"[?&]id=([A-Za-z0-9_-]{20,})", url)
+         or re.match(r"^([A-Za-z0-9_-]{20,})$", url))
+    if not m:
+        return JSONResponse({"error": "Nie rozpoznałem ID folderu w tym linku."}, status_code=400)
+    fid = m.group(1)
+    try:
+        meta = _drive().files().get(fileId=fid, fields="id,name,mimeType,driveId",
+                                    supportsAllDrives=True).execute()
+    except Exception:
+        return JSONResponse({"error": "Folder niedostępny dla konta serwisowego. Udostępnij ten folder dla %s (rola Czytelnik) i spróbuj ponownie." % _SA_EMAIL}, status_code=502)
+    if meta.get("mimeType") != "application/vnd.google-apps.folder":
+        return JSONResponse({"error": "Podany link to nie jest folder Google Drive."}, status_code=400)
+    src = _load_sources()
+    src[aid] = {"folder_id": fid, "drive_id": meta.get("driveId", "")}
+    try:
+        json.dump(src, open(_SOURCES, "w", encoding="utf-8"))
+    except Exception as e:
+        print("sources save err", e, file=sys.stderr)
+        return JSONResponse({"error": "Nie udało się zapisać konfiguracji."}, status_code=500)
+    _files_cache.pop(aid, None)
+    return JSONResponse({"ok": True, "name": meta.get("name", "")})
