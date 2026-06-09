@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="WSK Konsorcjum — platforma zarządzania przetargami i kosztorysami budowlanymi" />
+    <title>WSKplatforma</title>
+    <!-- Guard: /dashboard należy do nowego Analizatora (backend), nie do starego React Dashboard.
+         Przechwytujemy client-side nawigację react-routera na /dashboard i wymuszamy pełne załadowanie. -->
+    <script>
+    (function(){
+      function isDash(u){ try{ return new URL(u, location.origin).pathname === '/dashboard'; }catch(e){ return false; } }
+      var _p = history.pushState, _r = history.replaceState;
+      history.pushState = function(s,t,u){ if(u!=null && isDash(u)){ location.assign('/dashboard'); return; } return _p.apply(this, arguments); };
+      history.replaceState = function(s,t,u){ if(u!=null && isDash(u)){ location.assign('/dashboard'); return; } return _r.apply(this, arguments); };
+    })();
+    </script>
+    <script type="module" crossorigin src="/assets/index-RqQR3Ofs.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-COxLsSnP.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

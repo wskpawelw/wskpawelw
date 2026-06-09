@@ -29,13 +29,15 @@ def _verify_token(token: str):
 
 # ---- STRONA (przejmuje /dashboard; alias /analizator) — sama jest publicznym shellem,
 #      dane lecą wyłącznie przez API za tokenem ----
+_NOCACHE = {"Cache-Control": "no-store, must-revalidate"}
+
 @router.get("/dashboard", include_in_schema=False)
 def page_dashboard():
-    return HTMLResponse(open(_HTML, encoding="utf-8").read())
+    return HTMLResponse(open(_HTML, encoding="utf-8").read(), headers=_NOCACHE)
 
 @router.get("/analizator", include_in_schema=False)
 def page_analizator():
-    return HTMLResponse(open(_HTML, encoding="utf-8").read())
+    return HTMLResponse(open(_HTML, encoding="utf-8").read(), headers=_NOCACHE)
 
 
 # ---- API (za loginem) ----
