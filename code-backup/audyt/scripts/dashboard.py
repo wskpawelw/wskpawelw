@@ -95,6 +95,30 @@ def parse(path):
             mfn=re.search(r"([\d.,]+)\s*[–\-]\s*([\d.,]+)\s*mln\s*PLN\s*netto",flat)
             if mfn:
                 d["value"]["netto_od"]=_mln(mfn.group(1)); d["value"]["netto_do"]=_mln(mfn.group(2))
+    # --- fallback: termin/wadium z 02_METRYCZKA gdy streszczenie nie dało ---
+    if not (d["meta"].get("termin") and d["meta"].get("wadium")):
+        s02=find_sheet(wb,"02_METRYCZKA","METRYCZKA")
+        if s02:
+            mkv=[]
+            for r in cells(s02):
+                if len(r)>=3 and r[1] and r[2]:
+                    mkv.append((str(r[1]).strip().lower(), str(r[2]).strip()))
+            _DT=r"(\d{4}-\d{2}-\d{2}|(?:0?[1-9]|[12]\d|3[01])[.\-/](?:0?[1-9]|1[0-2])[.\-/]20\d{2})(?:[^\d]{0,8}(godz\.?\s*\d{1,2}[:.]\d{2}))?"
+            if not d["meta"].get("termin"):
+                traw=""
+                for lab,val in mkv:
+                    if ("termin" in lab and ("skład" in lab or "sklad" in lab or "ofert" in lab)
+                        and "realizac" not in lab and "zwiaz" not in lab and "związ" not in lab and "pyta" not in lab):
+                        traw=val  # ostatni = po ewentualnej zmianie/przedłużeniu
+                if traw:
+                    mt=re.search(_DT, traw)
+                    if mt: d["meta"]["termin"]=(mt.group(1)+(" "+re.sub(r"\s+"," ",mt.group(2)) if mt.group(2) else "")).strip()
+            if not d["meta"].get("wadium"):
+                for lab,val in mkv:
+                    if "wadium" in lab and val:
+                        mw=re.search(r"(\d[\d\s.,]{2,}\s*(?:PLN|zł|zl))", val)
+                        d["meta"]["wadium"]=(re.sub(r"\s+"," ",mw.group(1)).strip() if mw else ("brak" if "BRAK" in val.upper() else val[:50]))
+                        break
     # --- 25 kalkulacja: grupy do wykresu + RAZEM/SUMA jako FALLBACK wartości ---
     s25=find_sheet(wb,"25_KALKULACJA","KALKULACJA")
     if s25:
