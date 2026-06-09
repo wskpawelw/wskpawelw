@@ -419,3 +419,18 @@ async def api_set_source(aid: str, request: Request, user=Depends(get_current_us
         return JSONResponse({"error": "Nie udało się zapisać konfiguracji."}, status_code=200)
     _files_cache.pop(aid, None)
     return JSONResponse({"ok": True, "name": meta.get("name", "")})
+
+
+@router.post("/api/analizator/update/{aid}")
+def api_update(aid: str, user=Depends(get_current_user)):
+    """Tryb przyrostowy — dograj nowe dokumenty z podpiętego folderu do istniejącego audytu."""
+    if not re.match(r"^AUDYT_[A-Za-z0-9_]+$", aid):
+        return JSONResponse({"error": "Zła nazwa audytu."}, status_code=400)
+    src = _load_sources().get(aid)
+    if not src or not src.get("folder_id"):
+        return JSONResponse({"error": "Najpierw podepnij źródłowy folder Drive (pole w sekcji „Co przeanalizowane”), żeby było skąd dograć nowe dokumenty."}, status_code=200)
+    url = "https://drive.google.com/drive/folders/%s" % src["folder_id"]
+    jid = uuid.uuid4().hex[:12]
+    ENG.jset(jid, pct=0, stage="Inicjalizacja", started=int(time.time()), mode="update", url=url)
+    threading.Thread(target=ENG.run_update, args=(jid, aid, url), daemon=True).start()
+    return JSONResponse({"job_id": jid})

@@ -306,8 +306,22 @@ VIEWS.analiza=async(app,id)=>{
    <h2 class="text-2xl md:text-3xl font-extrabold text-primary leading-tight">${esc(m.project)}</h2></div>
   <div class="flex gap-2">
    <a href="#" onclick="dlExcel('${id}')" class="flex items-center gap-2 px-4 py-2 bg-surface border border-outline-variant rounded-lg text-sm hover:border-secondary transition"><span class="material-symbols-outlined text-[18px]">table_view</span>Arkusz Google</a>
+   <button onclick="openUpdate('${id}')" class="flex items-center gap-2 px-4 py-2 bg-surface border border-outline-variant rounded-lg text-sm hover:border-secondary transition"><span class="material-symbols-outlined text-[18px]">sync</span>Aktualizuj audyt</button>
    <div class="flex items-center gap-2 px-4 py-2 rounded-lg text-white font-semibold text-sm ${bid?'bg-tertiary':'bg-wsk-orange'}"><span class="material-symbols-outlined text-[18px] ms-fill">${bid?'thumb_up':'flag'}</span>${bid?'SKŁADAĆ':'DECYZJA'}</div>
   </div></div>
+
+ <details class="mb-6 bg-secondary/5 border border-secondary/30 rounded-xl p-4">
+  <summary class="cursor-pointer text-sm font-semibold text-primary flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-secondary">sync</span>Jak zaktualizować audyt, gdy dojdą nowe dokumenty / odpowiedzi</summary>
+  <div class="text-sm text-on-surface-variant mt-3 space-y-2 leading-relaxed">
+   <p><b>1.</b> Wejdź do <b>folderu Google Drive</b> tego przetargu i <b>dorzuć nowe pliki</b>, np.:</p>
+   <ul class="list-disc ml-6 space-y-0.5">
+    <li>odpowiedzi / wyjaśnienia treści SWZ od zamawiającego</li>
+    <li>nowe załączniki (uzupełnienia projektu, formularze, sprostowania)</li>
+    <li>zmianę SWZ — inny <b>zakres rzeczowy</b>, nowy <b>termin składania</b>, zmiana wadium/kryteriów</li>
+   </ul>
+   <p><b>2.</b> Kliknij <b>„Aktualizuj audyt"</b> u góry. Bot dograje <b>tylko nowości</b> do istniejącego audytu — oznaczy odpowiedzi na pytania, zaktualizuje termin/zakres/wadium jeśli się zmieniły, doda zakładkę <b>„ZZ_AKTUALIZACJA"</b> z opisem co nowego. <b>Nie liczy wszystkiego od zera.</b></p>
+   <p class="text-[11px]">Wymaga podpiętego folderu źródłowego (pole w sekcji „Co przeanalizowane"). Przebieg trwa kilka minut (agent Opus) — pokaże się pasek postępu.</p>
+  </div></details>
 
  <!-- KPI row -->
  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -444,6 +458,32 @@ function expCard(e){
     <span class="flex items-center gap-2 shrink-0"><span class="text-[11px] text-on-surface-variant">${(e.points||[]).length} wniosków</span><span id="${id}_ic" class="material-symbols-outlined text-[20px] text-on-surface-variant">expand_more</span></span></button>
    <div id="${id}" class="hidden">${pts||'<p class="text-sm text-on-surface-variant px-3 py-3">Brak szczegółowych wniosków w arkuszu.</p>'}</div></div>`;
 }
+
+async function openUpdate(aid){
+ if(!aid)return;
+ if(!confirm('Aktualizacja dograje NOWE dokumenty z podpiętego folderu Drive do tego audytu (kilka minut, agent Opus).\nUpewnij się, że dorzuciłeś nowe pliki do folderu. Kontynuować?'))return;
+ let m=document.getElementById('updModal'); if(!m){m=document.createElement('div');m.id='updModal';document.body.appendChild(m);}
+ m.className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4';
+ m.innerHTML=`<div class="bg-surface rounded-2xl shadow-xl w-full max-w-lg p-6">
+   <div class="flex items-center justify-between mb-3"><h3 class="font-bold text-primary text-lg">Aktualizacja audytu</h3>
+    <button onclick="document.getElementById('updModal').remove()" class="text-on-surface-variant hover:text-error"><span class="material-symbols-outlined">close</span></button></div>
+   <div class="flex items-center justify-between mb-1"><span id="u-stage" class="text-sm text-on-surface-variant">Start…</span><span id="u-pct" class="text-lg font-extrabold text-secondary">0%</span></div>
+   <div class="w-full bg-surface-container rounded-full h-2 mb-3"><div id="u-bar" class="h-2 rounded-full bg-secondary transition-all" style="width:0%"></div></div>
+   <div id="u-log" class="bg-[#0d1b2a] text-slate-200 rounded-lg p-3 text-xs font-mono h-56 overflow-auto"></div>
+   <div id="u-foot" class="mt-3 hidden"></div></div>`;
+ let r;
+ try{ r=await (await fetch(API+'/update/'+encodeURIComponent(aid),{method:'POST'})).json(); }
+ catch(e){ uLog('ERR\tBłąd startu: '+e.message); return; }
+ if(r.error){ uLog('ERR\t'+r.error); return; }
+ if(!r.job_id){ uLog('ERR\tBrak job_id.'); return; }
+ const ES=new EventSource(API+'/progress/'+r.job_id+'?token='+encodeURIComponent(TOKEN));
+ let nlog=0;
+ const upd=s=>{ const pe=document.getElementById('u-pct'); if(!pe)return; pe.textContent=(s.pct||0)+'%'; document.getElementById('u-bar').style.width=(s.pct||0)+'%'; if(s.stage)document.getElementById('u-stage').textContent=s.stage; const lg=s.log||[]; for(let i=nlog;i<lg.length;i++) uLog(lg[i].m); nlog=lg.length; };
+ ES.onmessage=ev=>upd(JSON.parse(ev.data));
+ ES.addEventListener('done',ev=>{ const s=JSON.parse(ev.data); upd(s); ES.close(); const f=document.getElementById('u-foot'); if(f){f.classList.remove('hidden'); f.innerHTML=s.ok?`<button onclick="document.getElementById('updModal').remove();go('analiza','${aid}')" class="w-full bg-tertiary text-white py-2 rounded-lg font-semibold">Gotowe — pokaż zaktualizowany audyt</button>`:'<div class="text-sm text-error">Zakończono z błędem — sprawdź log powyżej.</div>';} });
+ ES.addEventListener('error',()=>uLog('ERR\tPołączenie przerwane.'));
+}
+function uLog(m){ const l=document.getElementById('u-log'); if(!l)return; let lvl='MSG',txt=m; const i=(''+m).indexOf('\t'); if(i>0){lvl=m.slice(0,i);txt=m.slice(i+1);} const c={STAGE:'#60a5fa',TOOL:'#94a3b8',MSG:'#cbd5e1',INFO:'#38bdf8',OK:'#34d399',ERR:'#f87171'}[lvl]||'#cbd5e1'; const row=document.createElement('div'); row.className='py-0.5'; row.innerHTML='<span style="color:'+c+'">'+esc(txt)+'</span>'; l.appendChild(row); l.scrollTop=l.scrollHeight; }
 
 async function openDoc(aid,el){
  const q=el.getAttribute('data-q')||'';

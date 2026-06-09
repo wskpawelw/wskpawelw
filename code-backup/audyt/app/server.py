@@ -196,6 +196,61 @@ def run_real(jid, url):
         jset(jid, stage="Zakończono", pct=100, done=True, ok=(rc==0),
              log_add=f"{'OK' if rc==0 else 'ERR'}\tSilnik zakończył (kod {rc}). Nie wykryto nowego pliku — sprawdź logi/dostęp do Drive.")
 
+def run_update(jid, aid, url):
+    """Tryb przyrostowy: dograj nowe dokumenty do istniejącego audytu (nie od zera)."""
+    fid=extract_folder_id(url)
+    path=os.path.join(OUTPUTS, aid+".xlsx")
+    if not os.path.exists(path):
+        jset(jid, done=True, ok=False, log_add="ERR\tBrak istniejącego pliku audytu do aktualizacji."); return
+    mtime0=os.path.getmtime(path)
+    jset(jid, log_add=f"INFO\tStart aktualizacji {aid}. Folder ID: {fid}")
+    prompt=(f"Użyj subagenta audyt-przetargowy w TRYBIE AKTUALIZACJI. "
+            f"Istnieje już audyt: {path} . Folder Google Drive z dokumentacją: {url} . "
+            f"Dograj TYLKO nowe/zmienione dokumenty do istniejącego pliku (nie rób audytu od nowa): "
+            f"oznacz odpowiedzi na pytania, zaktualizuj termin/zakres/wadium jeśli się zmieniły, "
+            f"dodaj zakładkę ZZ_AKTUALIZACJA z opisem co nowego. Nadpisz ten sam plik i przelicz formuły (recalc).")
+    import shutil
+    claude_bin=os.environ.get("CLAUDE_BIN") or shutil.which("claude") or "/home/wskpawelw/.local/bin/claude"
+    cmd=[claude_bin,"-p",prompt,"--output-format","stream-json","--verbose",
+         "--dangerously-skip-permissions","--model","opus"]
+    jset(jid, stage=STAGES[0][0], pct=3, log_add="INFO\tUruchamiam silnik (tryb aktualizacji)…")
+    try:
+        proc=subprocess.Popen(cmd, cwd=BASE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                              text=True, bufsize=1)
+    except Exception as e:
+        jset(jid, done=True, ok=False, log_add=f"ERR\tNie udało się uruchomić silnika: {e}"); return
+    for line in proc.stdout:
+        line=line.strip()
+        if not line: continue
+        try: ev=json.loads(line)
+        except Exception: continue
+        typ=ev.get("type")
+        if typ=="assistant":
+            for c in ev.get("message",{}).get("content",[]):
+                if c.get("type")=="tool_use":
+                    blob=(c.get("name","")+" "+json.dumps(c.get("input",{}),ensure_ascii=False))[:400]
+                    si=stage_for(blob)
+                    with LOCK: cur=JOBS[jid]["pct"]
+                    if si is not None and si<len(STAGES):
+                        jset(jid, stage=STAGES[si][0], pct=max(cur,min(STAGES[si][1], cur+4)))
+                    else:
+                        jset(jid, pct=min(96, cur+2))
+                    inp=c.get("input",{})
+                    hint=inp.get("file_path") or inp.get("command","") or inp.get("query","")
+                    jset(jid, log_add=f"TOOL\t{c.get('name','tool')}: {str(hint)[:90]}")
+                elif c.get("type")=="text" and c.get("text","").strip():
+                    jset(jid, log_add="MSG\t"+c["text"].strip()[:140])
+        elif typ=="result":
+            break
+    rc=proc.wait()
+    mtime1=os.path.getmtime(path) if os.path.exists(path) else mtime0
+    if mtime1>mtime0:
+        jset(jid, stage="Gotowe", pct=100, done=True, ok=True, result_id=aid,
+             log_add="OK\tAudyt zaktualizowany (dograne nowe dokumenty).")
+    else:
+        jset(jid, stage="Zakończono", pct=100, done=True, ok=(rc==0), result_id=aid,
+             log_add=f"{'OK' if rc==0 else 'ERR'}\tSilnik zakończył (kod {rc}). Plik bez zmian — możliwe że brak nowych dokumentów w folderze.")
+
 @app.post("/api/analyze")
 async def api_analyze(req: Request):
     body=await req.json()
