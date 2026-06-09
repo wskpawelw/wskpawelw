@@ -206,7 +206,7 @@ def api_sheet(aid: str, user=Depends(get_current_user)):
         url = _ensure_sheet(aid)
     except Exception as e:
         print("sheet err", aid, e, file=sys.stderr)
-        return JSONResponse({"error": "Nie udało się otworzyć arkusza Google."}, status_code=502)
+        return JSONResponse({"error": "Nie udało się otworzyć arkusza Google."}, status_code=200)
     if not url:
         return JSONResponse({"error": "Brak pliku xlsx dla tego audytu."}, status_code=404)
     return JSONResponse({"url": url})
@@ -289,7 +289,7 @@ def api_docfile(aid: str, q: str = Query(""), user=Depends(get_current_user)):
         res=_resolve_doc(aid, q)
     except Exception as e:
         print("docfile err", aid, e, file=sys.stderr)
-        return JSONResponse({"error": "Błąd odczytu folderu Drive."}, status_code=502)
+        return JSONResponse({"error": "Błąd odczytu folderu Drive."}, status_code=200)
     if res.get("error")=="no_source":
         return JSONResponse({"error": "no_source"}, status_code=404)
     return JSONResponse(res)
@@ -380,7 +380,7 @@ def api_pismo(aid: str, user=Depends(get_current_user)):
         res = _ensure_pismo(aid)
     except Exception as e:
         print("pismo err", aid, e, file=sys.stderr)
-        return JSONResponse({"error": "Nie udało się utworzyć pisma."}, status_code=502)
+        return JSONResponse({"error": "Nie udało się utworzyć pisma."}, status_code=200)
     if not res:
         return JSONResponse({"error": "Brak pliku audytu."}, status_code=404)
     if res.get("error") == "no_questions":
@@ -407,7 +407,7 @@ async def api_set_source(aid: str, request: Request, user=Depends(get_current_us
         meta = _drive().files().get(fileId=fid, fields="id,name,mimeType,driveId",
                                     supportsAllDrives=True).execute()
     except Exception:
-        return JSONResponse({"error": "Folder niedostępny dla konta serwisowego. Udostępnij ten folder dla %s (rola Czytelnik) i spróbuj ponownie." % _SA_EMAIL}, status_code=502)
+        return JSONResponse({"ok": False, "error": "Folder niedostępny dla konta serwisowego. Udostępnij ten folder dla %s (rola Czytelnik) i spróbuj ponownie." % _SA_EMAIL}, status_code=200)
     if meta.get("mimeType") != "application/vnd.google-apps.folder":
         return JSONResponse({"error": "Podany link to nie jest folder Google Drive."}, status_code=400)
     src = _load_sources()
@@ -416,6 +416,6 @@ async def api_set_source(aid: str, request: Request, user=Depends(get_current_us
         json.dump(src, open(_SOURCES, "w", encoding="utf-8"))
     except Exception as e:
         print("sources save err", e, file=sys.stderr)
-        return JSONResponse({"error": "Nie udało się zapisać konfiguracji."}, status_code=500)
+        return JSONResponse({"error": "Nie udało się zapisać konfiguracji."}, status_code=200)
     _files_cache.pop(aid, None)
     return JSONResponse({"ok": True, "name": meta.get("name", "")})
