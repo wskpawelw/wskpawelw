@@ -403,22 +403,27 @@ async def api_set_source(aid: str, request: Request, user=Depends(get_current_us
     if not m:
         return JSONResponse({"error": "Nie rozpoznałem ID folderu w tym linku."}, status_code=400)
     fid = m.group(1)
+    # Zapisujemy folder ZAWSZE (aktualizacja audytu używa Drive użytkownika przez agenta).
+    # Dostęp konta serwisowego (SA) jest potrzebny TYLKO do otwierania pojedynczych plików.
+    name = ""; did = ""; sa_access = False
     try:
         meta = _drive().files().get(fileId=fid, fields="id,name,mimeType,driveId",
                                     supportsAllDrives=True).execute()
+        if meta.get("mimeType") != "application/vnd.google-apps.folder":
+            return JSONResponse({"error": "Podany link to nie jest folder Google Drive."}, status_code=400)
+        name = meta.get("name", ""); did = meta.get("driveId", ""); sa_access = True
     except Exception:
-        return JSONResponse({"ok": False, "error": "Folder niedostępny dla konta serwisowego. Udostępnij ten folder dla %s (rola Czytelnik) i spróbuj ponownie." % _SA_EMAIL}, status_code=200)
-    if meta.get("mimeType") != "application/vnd.google-apps.folder":
-        return JSONResponse({"error": "Podany link to nie jest folder Google Drive."}, status_code=400)
+        pass  # SA bez dostępu — i tak zapisujemy folder (aktualizacja zadziała)
     src = _load_sources()
-    src[aid] = {"folder_id": fid, "drive_id": meta.get("driveId", "")}
+    src[aid] = {"folder_id": fid, "drive_id": did}
     try:
         json.dump(src, open(_SOURCES, "w", encoding="utf-8"))
     except Exception as e:
         print("sources save err", e, file=sys.stderr)
         return JSONResponse({"error": "Nie udało się zapisać konfiguracji."}, status_code=200)
     _files_cache.pop(aid, None)
-    return JSONResponse({"ok": True, "name": meta.get("name", "")})
+    note = "" if sa_access else ("Folder podpięty — aktualizacja audytu zadziała. Otwieranie pojedynczych plików wymaga udostępnienia folderu dla %s (rola Czytelnik)." % _SA_EMAIL)
+    return JSONResponse({"ok": True, "name": name, "sa_access": sa_access, "note": note})
 
 
 @router.post("/api/analizator/update/{aid}")

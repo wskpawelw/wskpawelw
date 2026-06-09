@@ -440,7 +440,7 @@ async function setSource(aid){
  if(!url){alert('Wklej link do folderu Google Drive z dokumentacją przetargu.');return;}
  try{
   const sr=await (await fetch(API+'/source/'+encodeURIComponent(aid),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url})})).json();
-  if(sr.ok){ alert('Podpięto folder: '+(sr.name||'')+'.\nDokumenty w tabeli są teraz klikalne.'); if(inp){inp.classList.remove('ring-2','ring-secondary');} }
+  if(sr.ok){ alert(sr.note ? ('Podpięto folder'+(sr.name?': '+sr.name:'')+'.\n\n'+sr.note) : ('Podpięto folder: '+(sr.name||'')+'.\nDokumenty w tabeli są teraz klikalne.')); if(inp){inp.classList.remove('ring-2','ring-secondary');} }
   else alert(sr.error||'Nie udało się podpiąć folderu.');
  }catch(e){ alert('Błąd sieci.'); }
 }
