@@ -39,13 +39,31 @@ tailwind.config={darkMode:"class",theme:{extend:{
  .dtable thead th{position:sticky;top:0;background:#f2f4f6;z-index:1}
  .dtable td,.dtable th{border-bottom:1px solid #eceef0}
  .pill{display:inline-flex;align-items:center;font-weight:700;font-size:11px;padding:2px 8px;border-radius:9999px;line-height:1.4}
+ #sidebar{padding:0.75rem}
+ #sidebar .sidebar-brand{margin-bottom:0.75rem}
+ #sidebar svg[aria-label="WS Konsorcjum"]{width:9rem}
+ #sidebar #nav{min-height:0;overflow-y:auto;gap:0.125rem;padding-right:0.2rem;scrollbar-width:thin}
+ #sidebar .navlink{gap:0.625rem;padding:0.375rem 0.625rem}
+ #sidebar .navlink .material-symbols-outlined,#sidebar .sidebar-footer>a .material-symbols-outlined{font-size:20px}
+ #sidebar .navlink .text-sm,#sidebar .sidebar-footer>a .text-sm{font-size:0.8125rem;line-height:1.125rem}
+ #sidebar .sidebar-section{padding-top:0.5rem}
+ #sidebar .sidebar-footer{flex-shrink:0;margin-top:0.5rem;padding-top:0.5rem}
+ #sidebar .sidebar-footer>a{gap:0.625rem;padding:0.375rem 0.625rem}
+ #sidebar .sidebar-security{padding:0.375rem 0.625rem;font-size:0.6875rem}
+ @media (max-height:800px) and (min-width:768px){
+  #sidebar{padding-top:0.5rem;padding-bottom:0.5rem}
+  #sidebar .sidebar-brand{margin-bottom:0.375rem}
+  #sidebar svg[aria-label="WS Konsorcjum"]{width:7.75rem}
+  #sidebar .sidebar-brand p{margin-top:0}
+  #sidebar .navlink{padding-top:0.25rem;padding-bottom:0.25rem}
+ }
 </style>
 </head>
 <body class="bg-background text-on-surface min-h-screen">
 
 <!-- SIDEBAR -->
-<nav class="bg-surface border-r border-outline-variant flex flex-col h-screen fixed left-0 top-0 w-64 px-4 py-6 z-30 hidden md:flex">
- <div class="mb-8 px-1">
+<nav id="sidebar" class="bg-surface border-r border-outline-variant flex flex-col h-screen fixed left-0 top-0 w-64 z-30 hidden md:flex">
+ <div class="sidebar-brand px-1">
   <svg viewBox="95 195 260 115" class="w-44 h-auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="WS Konsorcjum"><path d="M 122.605469 203.15625 L 102.152344 220.464844 L 102.152344 255.933594 L 122.605469 260.464844 Z" fill="#4a7fd4"/>
 <path d="M 123.800781 199.414062 L 123.769531 201.4375 L 144.292969 220.371094 L 144.148438 256.628906 L 127.058594 260.988281 L 162.117188 260.988281 L 162.117188 199.414062 Z" fill="#4a7fd4"/>
 <path d="M 136.40625 203.234375 L 162.117188 203.234375 L 162.117188 206.605469 L 136.40625 206.605469 Z" fill="white"/>
@@ -86,21 +104,27 @@ tailwind.config={darkMode:"class",theme:{extend:{
  </div>
  <ul class="flex flex-col gap-1 flex-grow" id="nav">
   <li><a data-view="pulpit"  class="navlink flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition"><span class="material-symbols-outlined">dashboard</span><span class="text-sm">Pulpit</span></a></li>
+  <li><a data-view="postepowania" class="navlink flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition"><span class="material-symbols-outlined">description</span><span class="text-sm">Przetargi</span></a></li>
+  <li><a data-view="archiwum" class="navlink flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition"><span class="material-symbols-outlined">archive</span><span class="text-sm">Archiwum</span></a></li>
+  <li><a data-view="radar" class="navlink flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition"><span class="material-symbols-outlined">radar</span><span class="text-sm">Radar</span></a></li>
   <li><a data-view="przetargi" class="navlink flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition"><span class="material-symbols-outlined">fact_check</span><span class="text-sm">Audyty</span></a></li>
   <li><a data-view="nowa"     class="navlink flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition"><span class="material-symbols-outlined">add_circle</span><span class="text-sm">Nowa analiza</span></a></li>
   <li><a data-view="raporty"  class="navlink flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition"><span class="material-symbols-outlined">assessment</span><span class="text-sm">Raporty</span></a></li>
-  <li class="px-3 pt-4 pb-1 text-[10px] uppercase tracking-wider text-on-surface-variant font-bold">Platforma</li>
-  <li><a data-view="postepowania" class="navlink flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition"><span class="material-symbols-outlined">description</span><span class="text-sm">Przetargi</span></a></li>
+  <li class="sidebar-section px-3 pb-1 text-[10px] uppercase tracking-wider text-on-surface-variant font-bold">Platforma</li>
   <li><a data-view="drive" class="navlink flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition"><span class="material-symbols-outlined">cloud</span><span class="text-sm">Google Drive</span></a></li>
   <li><a data-view="podwykonawcy" class="navlink flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition"><span class="material-symbols-outlined">groups</span><span class="text-sm">Podwykonawcy</span></a></li>
   <li><a data-view="materialy" class="navlink flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition"><span class="material-symbols-outlined">inventory_2</span><span class="text-sm">Materiały</span></a></li>
+  <li><a data-view="ceny" class="navlink flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition"><span class="material-symbols-outlined">payments</span><span class="text-sm">Ceny</span></a></li>
+  <li><a data-view="firmy" class="navlink flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition"><span class="material-symbols-outlined">apartment</span><span class="text-sm">Firmy</span></a></li>
+  <li><a data-view="konkurencja" class="navlink flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition"><span class="material-symbols-outlined">groups_3</span><span class="text-sm">Konkurencja</span></a></li>
+  <li><a data-view="rekomendator" class="navlink flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition"><span class="material-symbols-outlined">insights</span><span class="text-sm">Rekomendator</span></a></li>
  </ul>
- <div class="mt-auto border-t border-outline-variant pt-4 space-y-1">
+ <div class="sidebar-footer border-t border-outline-variant space-y-1">
   <a href="/" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition">
    <span class="material-symbols-outlined">grid_view</span><span class="text-sm">Reszta platformy</span></a>
   <a href="/login" onclick="['token','access_token'].forEach(k=>{localStorage.removeItem(k);sessionStorage.removeItem(k)})" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition">
    <span class="material-symbols-outlined">logout</span><span class="text-sm">Wyloguj</span></a>
-  <div class="flex items-center gap-2 px-3 py-2 text-xs text-on-surface-variant">
+  <div class="sidebar-security flex items-center gap-2 text-xs text-on-surface-variant">
    <span class="material-symbols-outlined text-tertiary text-[18px] ms-fill">verified_user</span>
    Dane poufne · tylko WSK
   </div>
@@ -143,10 +167,25 @@ function findToken(){
 const TOKEN=findToken();
 if(!TOKEN){location.href='/login';}
 const _fetch=window.fetch.bind(window);
-window.fetch=(u,o)=>{o=o||{};if(typeof u==='string'&&u.indexOf('/api/')===0){o.headers=Object.assign({},o.headers,{Authorization:'Bearer '+TOKEN});}return _fetch(u,o);};
+window.fetch=(u,o)=>{o=o||{};if(typeof u==='string'&&u.indexOf('/api/')===0){o.headers=Object.assign({},o.headers,{Authorization:'Bearer '+TOKEN});}
+ return _fetch(u,o).then(r=>{
+  // dostrojenie 2026-06-12: token wygasły/po rotacji klucza → 401 na każdym /api;
+  // zamiast 'błąd w każdej zakładce' przekieruj raz na logowanie
+  if(r.status===401&&typeof u==='string'&&u.indexOf('/api/')===0&&!location.pathname.startsWith('/login')){
+   ['token','access_token'].forEach(k=>{try{localStorage.removeItem(k);sessionStorage.removeItem(k);}catch(e){}});
+   location.href='/login'; }
+  return r; });};
 const fmtMln=v=> (v||v===0)? (v/1e6).toFixed(2).replace('.',',')+' mln':'—';
 const fmtPLN=v=> (v||v===0)? Math.round(v).toLocaleString('pl-PL')+' zł':'—';
-let AUDITS=[]; let CHARTS=[];
+// Wartość szacunkowa: mln dla dużych (bez zmian), "tys. zł" dla małych przetargów
+// (np. 225–291 tys. zamiast mylącego "0,23 mln"). dostrojenie 2026-07-15.
+const fmtWart=(od,doo)=>{
+ if((od==null||od===0)&&(doo==null||doo===0))return '—';
+ if(Math.max(od||0,doo||0)>=1e6) return fmtMln(od)+(doo&&doo!==od?' – '+fmtMln(doo):'');
+ const g=v=>Math.round((v||0)/1e3).toLocaleString('pl-PL');
+ return g(od||doo)+(doo&&doo!==od?' – '+g(doo):'')+' tys. zł';
+};
+let AUDITS=[]; let AUDITS_ALL=[]; let CHARTS=[];
 function killCharts(){CHARTS.forEach(c=>{try{c.destroy()}catch(e){}});CHARTS=[]}
 const SEV={KRYTYCZNA:'#dc2626',WYSOKA:'#ea580c',SREDNIA:'#d97706','ŚREDNIA':'#d97706',NISKA:'#65a30d'};
 const SEV_ICON={KRYTYCZNA:'dangerous',WYSOKA:'error',SREDNIA:'warning','ŚREDNIA':'warning',NISKA:'info'};
@@ -154,17 +193,48 @@ const SEV_ORDER={KRYTYCZNA:0,WYSOKA:1,SREDNIA:2,'ŚREDNIA':2,NISKA:3};
 const ST={OK:'#16a34a','DOPYTAĆ':'#d97706',DOPYTAC:'#d97706',KRYTYCZNA:'#dc2626',BRAK_W_PRZEDMIARZE:'#2563eb','ROZBIEŻNOŚĆ':'#db2777',ROZBIEZNOSC:'#db2777'};
 const esc=s=>(s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
-async function loadAudits(){ AUDITS=await (await fetch(API+'/audits')).json(); }
+function auditGroupKey(a){
+ const bzp=String(a.bzp||'').match(/20\d{2}\s*\/\s*BZP\s*\/?\s*[0-9]+/i);
+ if(bzp) return 'bzp:'+bzp[0].replace(/\s+/g,'').toUpperCase();
+ const n=String(a.project||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+ // CKiK/CKK to ten sam skrót Centrum Kultury i Książki; nazwy wyników
+ // różnych silników są inne, więc zwykłe porównanie tekstu ich nie złączy.
+ if((/\bckik\b|\bckk\b|centrum kultury.*ksiazek|centrum kultury.*ksiazki/.test(n))&&/goscin/.test(n)) return 'projekt:ckik-goscino';
+ return 'id:'+String(a.id||'').replace(/_v\d+$/i,'').toLowerCase();
+}
+function auditQuality(a){
+ return (Number(a.netto_od)>0?100:0)+(Number(a.netto_do)>0?100:0)+
+        (Number(a.mat_count)>0?10:0)+(Number(a.mat_total)>0?5:0)+(Number(a.mtime)||0)/1e12;
+}
+function bezDuplikatowAudytow(list){
+ const best=new Map();
+ for(const a of list||[]){const k=auditGroupKey(a),old=best.get(k);if(!old||auditQuality(a)>auditQuality(old))best.set(k,a);}
+ return [...best.values()].sort((a,b)=>(b.mtime||0)-(a.mtime||0));
+}
+async function loadAudits(){ try{ const r=await fetch(API+'/audits'); const d=await r.json(); AUDITS_ALL=Array.isArray(d)?d:[]; AUDITS=bezDuplikatowAudytow(AUDITS_ALL); }catch(e){ AUDITS_ALL=[]; AUDITS=[]; } }
 
 // ---------------- router
 const VIEWS={};
 function setActive(v){document.querySelectorAll('.navlink').forEach(a=>a.classList.toggle('active',a.dataset.view===v));}
-async function go(view,arg){
- killCharts(); setActive(view); location.hash=view+(arg?('/'+arg):'');
+// render() = faktyczne przerysowanie widoku. go() = nawigacja (ustawia hash).
+// fix 2026-07-03: dodany listener hashchange — bez niego przycisk WSTECZ/NAPRZÓD
+// przeglądarki zmieniał hash, ale nic go nie łapiło i widok stał w miejscu.
+async function render(view,arg){
+ killCharts(); setActive(view);
  const app=$('#app'); app.innerHTML='<div class="text-on-surface-variant text-sm py-20 text-center">Ładowanie…</div>';
  try{ await VIEWS[view](app,arg); app.firstElementChild&&app.firstElementChild.classList.add('fade'); }
  catch(e){ app.innerHTML='<div class="text-error p-6">Błąd: '+esc(e.message)+'</div>'; }
 }
+function go(view,arg){
+ const hash=view+(arg?('/'+arg):'');
+ // ten sam hash → hashchange się nie odpali, renderuj wprost; inaczej ustaw hash
+ // → hashchange → render (jedna ścieżka, działa też dla wstecz/naprzód).
+ if(location.hash.slice(1)===hash){ render(view,arg); } else { location.hash=hash; }
+}
+window.addEventListener('hashchange',()=>{
+ const h=location.hash.slice(1).split('/');
+ render(VIEWS[h[0]]?h[0]:'pulpit', h[1]);
+});
 document.querySelectorAll('.navlink').forEach(a=>a.onclick=e=>{e.preventDefault();go(a.dataset.view)});
 function onSearch(){ if(location.hash.startsWith('#przetargi')||!location.hash) renderList(); }
 
@@ -175,6 +245,17 @@ VIEWS.pulpit=async(app)=>{
  const bid=AUDITS.filter(a=>a.bid).length;
  const risks=AUDITS.reduce((s,a)=>s+a.risks,0);
  const krit=AUDITS.reduce((s,a)=>s+a.krit,0);
+ // Tablica terminów: aktywne postępowania z nadchodzącym terminem (21 dni)
+ let TERMINY=[];
+ try{
+  const [przet,lk]=await Promise.all([jget('/api/przetargi'),jget('/api/analizator/audit-links')]);
+  const links=lk.links||{};
+  const maAudyt=pid=>Object.values(links).some(v=>Number(v)===Number(pid));
+  TERMINY=(przet||[])
+   .filter(p=>!['zakonczony','wygrany','przegrany'].includes(p.status)&&p.dni_do_terminu!=null&&p.dni_do_terminu>=0&&p.dni_do_terminu<=21)
+   .sort((a,b)=>a.dni_do_terminu-b.dni_do_terminu)
+   .map(p=>({...p,audyt:maAudyt(p.id)}));
+ }catch(e){}
  app.innerHTML=`
  <div class="mb-6">
   <p class="text-sm text-secondary font-semibold uppercase tracking-wider">Pulpit</p>
@@ -187,6 +268,23 @@ VIEWS.pulpit=async(app)=>{
   ${kpi('thumb_up','Rekomendacja: składać',bid,'z '+AUDITS.length+' postępowań','#0f7a4d')}
   ${kpi('warning','Ryzyka',risks,krit+' krytycznych','#d35400')}
  </div>
+ <section class="bg-surface border border-outline-variant rounded-xl p-5 shadow-ambient mb-6">
+  <div class="flex items-center justify-between mb-3">
+   <h3 class="font-bold text-primary text-lg flex items-center gap-2"><span class="material-symbols-outlined text-secondary">event_upcoming</span>Tablica terminów — najbliższe 21 dni</h3>
+   <button onclick="go('postepowania')" class="text-secondary text-sm font-semibold hover:underline">Wszystkie przetargi →</button></div>
+  ${TERMINY.length?'<div class="divide-y divide-outline-variant">'+TERMINY.map(p=>{
+    const dni=p.dni_do_terminu;
+    const dc=dni<0?['#e0e3e5','#64748b']:dni<=3?['#ffdad6','#93000a']:dni<=7?['#fde68a','#92400e']:['#c7f3dc','#00391f'];
+    return `<div onclick="go('postepowanie',${Number(p.id)})" class="flex items-center gap-3 py-2.5 px-2 cursor-pointer hover:bg-surface-container-low rounded-lg transition">
+     <span class="pill tnum shrink-0 w-28 text-center" style="background:${dc[0]};color:${dc[1]}">${esc(p.termin_skladania||'—')}</span>
+     <span class="pill tnum shrink-0 font-bold" style="background:${dc[0]};color:${dc[1]}">${dni<0?'po terminie':dni===0?'DZIŚ':dni+' dni'}</span>
+     <div class="flex-1 min-w-0"><p class="text-sm font-medium text-primary truncate">${esc(p.nazwa||'—')}</p>
+      <p class="text-[11px] text-on-surface-variant truncate">${esc(p.zamawiajacy||'')}${lokPrz(p)?' · '+esc(lokPrz(p)):''}</p></div>
+     ${p.audyt?'<span class="pill bg-tertiary-container text-on-tertiary-container shrink-0">audyt ✓</span>':'<span class="pill bg-error-container text-on-error-container shrink-0">brak audytu</span>'}
+     <span class="material-symbols-outlined text-on-surface-variant shrink-0">chevron_right</span></div>`;
+  }).join('')+'</div>'
+  :'<p class="text-sm text-on-surface-variant">Brak aktywnych postępowań z terminem w najbliższych 21 dniach.</p>'}
+ </section>
  <div class="grid lg:grid-cols-3 gap-6">
   <section class="lg:col-span-2 bg-surface border border-outline-variant rounded-xl p-5 shadow-ambient">
    <h3 class="font-bold text-primary mb-4">Wartość szacunkowa wg postępowania (mln zł netto)</h3>
@@ -198,7 +296,7 @@ VIEWS.pulpit=async(app)=>{
  <section class="mt-6">
   <div class="flex items-center justify-between mb-3"><h3 class="font-bold text-primary text-lg">Ostatnie analizy</h3>
    <button onclick="go('przetargi')" class="text-secondary text-sm font-semibold hover:underline">Wszystkie →</button></div>
-  <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4">${AUDITS.slice(0,6).map(card).join('')}</div>
+  <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4">${najnowszeWersje(AUDITS).slice(0,6).map(card).join('')}</div>
  </section>`;
  // charts
  const top=[...AUDITS].sort((a,b)=>(b.netto_do||0)-(a.netto_do||0)).slice(0,8);
@@ -217,7 +315,12 @@ function kpi(icon,label,val,sub,color){return `
   <div class="text-2xl font-extrabold text-primary mt-2">${val}</div>
   <div class="text-xs text-on-surface-variant">${sub}</div></div>`;}
 function shortName(s){s=s.replace(/^AUDYT[_ ]*/i,'');return s.length>22?s.slice(0,22)+'…':s;}
-function card(a){const c=a.bid?'#0f7a4d':'#d35400';return `
+// Wersjonowanie audytów: ID = AUDYT_X_vN. Baza = bez _vN. Pulpit pokazuje najnowszą per baza.
+function _baza(id){return String(id||'').replace(/_v\d+$/,'');}
+function najnowszeWersje(list){const m={};(list||[]).forEach(a=>{const b=_baza(a.id);if(!m[b]||(a.mtime||0)>(m[b].mtime||0))m[b]=a;});return Object.values(m).sort((x,y)=>(y.mtime||0)-(x.mtime||0));}
+function wersjeBazy(list,id){const b=_baza(id);return (list||[]).filter(a=>_baza(a.id)===b).sort((x,y)=>(x.mtime||0)-(y.mtime||0));}
+function diffRow(label,oldTxt,newTxt,delta){const col=delta==null?'':(delta>0?'#93000a':delta<0?'#0f7a4d':'#64748b');const arr=(delta==null||delta===0)?'':(delta>0?'▲':'▼');return `<div class="bg-surface-container-low rounded-lg p-3"><p class="text-[11px] uppercase tracking-wide text-on-surface-variant font-semibold">${label}</p><p class="text-sm mt-1"><span class="text-on-surface-variant line-through">${oldTxt}</span> → <b class="text-primary">${newTxt}</b></p>${(delta!=null&&delta!==0)?`<p class="text-xs font-semibold mt-0.5" style="color:${col}">${arr} ${delta>0?'+':''}${delta}</p>`:''}</div>`;}
+function card(a){const c=a.bid?'#0f7a4d':'#d35400';const _nv=wersjeBazy(AUDITS,a.id).length;return `
  <a onclick="go('analiza','${a.id}')" class="block bg-surface border border-outline-variant rounded-xl shadow-ambient hover:shadow-lg hover:border-secondary transition cursor-pointer overflow-hidden">
   <div style="height:5px;background:${c}"></div>
   <div class="p-4">
@@ -230,6 +333,7 @@ function card(a){const c=a.bid?'#0f7a4d':'#d35400';return `
     <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">inventory_2</span>${a.mat_count} mat.</span>
     <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]" style="color:#d35400">warning</span>${a.risks}${a.krit?' · '+a.krit+' kryt.':''}</span>
     ${a.termin?'<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">event</span>'+esc(a.termin)+'</span>':''}
+    ${_nv>1?'<span class="flex items-center gap-1 ml-auto" title="Najnowsza z '+_nv+' wersji — wejdź by zobaczyć różnice"><span class="material-symbols-outlined text-[14px]">history</span>v'+_nv+'</span>':''}
    </div></div></a>`;}
 
 // ================= PRZETARGI (lista + filtry)
@@ -271,11 +375,15 @@ function renderList(){
  else if(sort==='risk')list.sort((a,b)=>b.risks-a.risks);
  else list.sort((a,b)=>b.mtime-a.mtime);
  $('#count').textContent='Wyświetlanie '+list.length+' z '+AUDITS.length+' wyników';
+ // najnowsza wersja per baza nazwy (AUDYT_X_v1/_v2) — starsze dostają szarą plakietkę
+ const _najnowsze={};
+ AUDITS.forEach(a=>{const b=String(a.id).replace(/_v\d+$/,''); if(!_najnowsze[b]||(a.mtime||0)>(_najnowsze[b].mtime||0)) _najnowsze[b]=a;});
  rowsEl.innerHTML=list.map(a=>{
   const sv=a.sev||{};const score=Math.min(96,(sv['KRYTYCZNA']||0)*24+(sv['WYSOKA']||0)*12+((sv['SREDNIA']||sv['ŚREDNIA'])||0)*5+(sv['NISKA']||0)*1);
   const sc=score>=60?['#ffdad6','#93000a']:score>=35?['#fde68a','#92400e']:['#c7f3dc','#00391f'];
-  return `<tr onclick="go('analiza','${a.id}')" class="border-b border-outline-variant hover:bg-surface-container-low cursor-pointer group">
-   <td class="p-3"><div class="font-medium text-on-surface group-hover:text-secondary">${esc(a.project)}</div>
+  const stara=_najnowsze[String(a.id).replace(/_v\d+$/,'')].id!==a.id;
+  return `<tr onclick="go('analiza','${a.id}')" class="border-b border-outline-variant hover:bg-surface-container-low cursor-pointer group ${stara?'opacity-60':''}">
+   <td class="p-3"><div class="font-medium text-on-surface group-hover:text-secondary">${esc(a.project)} ${stara?'<span class="pill" style="background:#eceef0;color:#64748b;font-size:10px">starsza wersja</span>':''}</div>
     <div class="text-xs text-on-surface-variant">${esc(a.bzp||'—')} · ${a.mat_count} materiałów</div></td>
    <td class="p-3 font-semibold whitespace-nowrap tnum">${fmtMln(a.netto_od)}${a.netto_do?'–'+fmtMln(a.netto_do):''}</td>
    <td class="p-3 whitespace-nowrap tnum text-on-surface-variant">${esc(a.termin||'—')}</td>
@@ -284,17 +392,106 @@ function renderList(){
  }).join('')||'<tr><td colspan="5" class="p-8 text-center text-on-surface-variant">Brak wyników.</td></tr>';
 }
 
+async function setAuditLink(aid,val){
+ if(val===''){return;}
+ const pid=val==='null'?null:Number(val);
+ try{
+  await fetch('/api/analizator/audit-links',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audit_id:aid,projekt_id:pid})});
+  go('analiza',aid);
+ }catch(e){alert('Nie udało się zapisać powiązania: '+e.message);}
+}
+
+// ── Audyt prosto z widoku postępowania ──
+async function startAudytPostepowania(pid){
+ const inp=document.getElementById('audytUrl');
+ const url=(inp&&inp.value||'').trim();
+ if(!url||url.indexOf('drive.google.com')<0){alert('Wklej link do folderu Google Drive z dokumentacją postępowania.');return;}
+ if(!confirm('Uruchomić pełny audyt z tego folderu? (agent Opus, kilkanaście minut)\nAudyt sam powiąże się z tym postępowaniem.'))return;
+ let m=document.getElementById('updModal'); if(!m){m=document.createElement('div');m.id='updModal';document.body.appendChild(m);}
+ m.className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4';
+ m.innerHTML=`<div class="bg-surface rounded-2xl shadow-xl w-full max-w-lg p-6">
+   <div class="flex items-center justify-between mb-3"><h3 class="font-bold text-primary text-lg">Audyt postępowania #${pid}</h3>
+    <button onclick="document.getElementById('updModal').remove()" class="text-on-surface-variant hover:text-error"><span class="material-symbols-outlined">close</span></button></div>
+   <div class="flex items-center justify-between mb-1"><span id="u-stage" class="text-sm text-on-surface-variant">Start…</span><span id="u-pct" class="text-lg font-extrabold text-secondary">0%</span></div>
+   <div class="w-full bg-surface-container rounded-full h-2 mb-3"><div id="u-bar" class="h-2 rounded-full bg-secondary transition-all" style="width:0%"></div></div>
+   <div id="u-log" class="bg-[#0d1b2a] text-slate-200 rounded-lg p-3 text-xs font-mono h-56 overflow-auto"></div>
+   <div id="u-foot" class="mt-3 hidden"></div></div>`;
+ let r;
+ try{ r=await (await fetch(API+'/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url,mode:'real',projekt_id:pid})})).json(); }
+ catch(e){ uLog('ERR\tBłąd startu: '+e.message); return; }
+ if(r.error){ uLog('ERR\t'+r.error); return; }
+ const ES=new EventSource(API+'/progress/'+r.job_id+'?token='+encodeURIComponent(TOKEN));
+ let nlog=0;
+ const upd=s=>{ const pe=document.getElementById('u-pct'); if(!pe)return; pe.textContent=(s.pct||0)+'%'; document.getElementById('u-bar').style.width=(s.pct||0)+'%'; if(s.stage)document.getElementById('u-stage').textContent=s.stage; const lg=s.log||[]; for(let i=nlog;i<lg.length;i++) uLog(lg[i].m); nlog=lg.length; };
+ ES.onmessage=ev=>upd(JSON.parse(ev.data));
+ ES.addEventListener('done',async ev=>{ const s=JSON.parse(ev.data); upd(s); ES.close();
+  const f=document.getElementById('u-foot'); if(!f)return; f.classList.remove('hidden');
+  // Wiążemy WYŁĄCZNIE audyt wynikowy jobu (result_id). Nigdy "najnowszy po mtime" —
+  // incydent 2026-09-11: silnik nie dał pliku, a front powiązał Dygowo z #47.
+  if(s.ok===false||!s.result_id){ f.innerHTML='<div class="text-sm text-error">Silnik nie wygenerował pliku audytu — NIC nie zostało powiązane z tym postępowaniem. Sprawdź log powyżej i uruchom audyt ponownie.</div>'; return; }
+  try{ await loadAudits();
+   // backend wiąże sam po zakończeniu jobu (projekt_id w /analyze); tu idempotentne domknięcie
+   await fetch('/api/analizator/audit-links',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audit_id:s.result_id,projekt_id:pid})});
+   await fetch(API+'/source/'+encodeURIComponent(s.result_id),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url})});
+  }catch(e){}
+  f.innerHTML=`<button onclick="document.getElementById('updModal').remove();go('postepowanie',${pid})" class="w-full bg-tertiary text-white py-2 rounded-lg font-semibold">Gotowe — audyt ${esc(String(s.result_id))} powiązany, odśwież widok</button>`;
+ });
+ ES.addEventListener('error',()=>uLog('INFO\tPodgląd chwilowo przerwany — odnawiam połączenie (job działa dalej w tle).'));
+}
+
+// ── Pobranie nowych dokumentów z portalu do folderu Drive audytu ──
+async function pobierzNowe(pid,zid,btn){
+ if(btn){btn.disabled=true;btn.textContent='Pobieram…';}
+ try{
+  const r=await (await fetch('/api/analizator/pobierz-nowe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({projekt_id:pid,zmiana_id:zid})})).json();
+  if(r.ok){
+   let msg='Pobrane do folderu Drive: '+(r.pobrane.length? '\n• '+r.pobrane.join('\n• '):'(nic nowego)');
+   if(r.pominiete.length) msg+='\n\nPominięte:\n• '+r.pominiete.join('\n• ');
+   if(r.bledy.length) msg+='\n\nNie udało się:\n• '+r.bledy.join('\n• ');
+   msg+='\n\nUruchomić teraz aktualizację audytu ('+r.audit_id+'), żeby dograć te dokumenty?';
+   if(confirm(msg)) openUpdate(r.audit_id);
+  }else if(r.error==='no_source'){
+   alert('Audyt '+(r.audit_id||'')+' nie ma podpiętego folderu Drive.\nWejdź w audyt, wklej link folderu w polu „folder z dokumentacją" i kliknij „Podepnij folder" — potem wróć i pobierz.');
+   if(r.audit_id) go('analiza',r.audit_id);
+  }else if(r.error==='no_audit'){
+   alert('To postępowanie nie ma jeszcze audytu.\nWklej folder Drive w karcie „Audyty przetargowe" i uruchom audyt — nowe dokumenty wejdą do analizy od razu.');
+  }else{
+   alert(r.error||'Nie udało się pobrać.');
+  }
+ }catch(e){ alert('Błąd sieci: '+e.message); }
+ if(btn){btn.disabled=false;btn.textContent='⬇ Pobierz do Drive';}
+}
+
 // ================= ANALIZA (detal — bento)
 VIEWS.analiza=async(app,id)=>{
  if(!id){return go('przetargi');}
  const d=await (await fetch(API+'/audit/'+id)).json();
  if(d.error){app.innerHTML='<div class="p-6 text-error">'+esc(d.error)+'</div>';return;}
+ let LINKP=null, PROJ=[];
+ try{ PROJ=(await jget('/api/przetargi'))||[];
+  const lk=(await jget('/api/analizator/audit-links')).links||{};
+  if(lk[id]!=null) LINKP=PROJ.find(p=>Number(p.id)===Number(lk[id]))||null; }catch(e){}
  const v=d.value, m=d.meta; const bid=m.bid;
  const nod=v.netto_od,ndo=v.netto_do;
  const sev=d.sev||{};
  const sKr=sev['KRYTYCZNA']||0,sWy=sev['WYSOKA']||0,sSr=(sev['SREDNIA']||sev['ŚREDNIA'])||0,sNi=sev['NISKA']||0;
  const krit=sKr;
  const score=Math.min(96,sKr*24+sWy*12+sSr*5+sNi*1);
+ if(!AUDITS.length){try{await loadAudits();}catch(e){}}
+ const _vers=wersjeBazy(AUDITS,id); const _idx=_vers.findIndex(a=>a.id===id);
+ const _cur=_idx>=0?_vers[_idx]:null, _prev=_idx>0?_vers[_idx-1]:null;
+ // diff materiał-po-materiale vs poprzednia wersja (klucz = nazwa 'mat')
+ let _matDiff=null;
+ if(_prev){
+  let _pm=[]; try{const pd=await (await fetch(API+'/audit/'+_prev.id)).json(); _pm=pd.materials||[];}catch(e){}
+  const _cm=d.materials||[]; const _k=x=>String(x.mat||'').toLowerCase().trim().replace(/\s+/g,' ');
+  const _pMap=new Map(_pm.map(x=>[_k(x),x])), _cMap=new Map(_cm.map(x=>[_k(x),x]));
+  const dodane=_cm.filter(x=>_k(x)&&!_pMap.has(_k(x)));
+  const usuniete=_pm.filter(x=>_k(x)&&!_cMap.has(_k(x)));
+  const zmienione=[];
+  _cm.forEach(x=>{const p=_pMap.get(_k(x)); if(p){const dIl=(Number(x.il)||0)-(Number(p.il)||0),dW=(Number(x.wart)||0)-(Number(p.wart)||0); if(Math.abs(dIl)>0.001||Math.abs(dW)>0.5||String(x.jedn||'')!==String(p.jedn||'')) zmienione.push({x,p,dIl,dW});}});
+  _matDiff={dodane,usuniete,zmienione};
+ }
  app.innerHTML=`
  <div class="flex items-center gap-2 text-sm text-on-surface-variant mb-2">
   <a onclick="go('przetargi')" class="hover:text-secondary cursor-pointer">Przetargi</a><span class="material-symbols-outlined text-[16px]">chevron_right</span>
@@ -305,11 +502,50 @@ VIEWS.analiza=async(app,id)=>{
     <span class="text-xs text-outline">${esc(m.bzp||'')}</span></div>
    <h2 class="text-2xl md:text-3xl font-extrabold text-primary leading-tight">${esc(m.project)}</h2></div>
   <div class="flex gap-2">
-   <a href="#" onclick="dlExcel('${id}')" class="flex items-center gap-2 px-4 py-2 bg-surface border border-outline-variant rounded-lg text-sm hover:border-secondary transition"><span class="material-symbols-outlined text-[18px]">table_view</span>Arkusz Google</a>
+   <button onclick="dlExcel('${id}')" class="flex items-center gap-2 px-4 py-2 bg-surface border border-outline-variant rounded-lg text-sm hover:border-secondary transition"><span class="material-symbols-outlined text-[18px]">table_view</span>Arkusz Google</button>
+   <button onclick="pobierzPdf('${id}',this)" class="flex items-center gap-2 px-4 py-2 bg-surface border border-outline-variant rounded-lg text-sm hover:border-secondary transition"><span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>Raport PDF</button>
    <button onclick="openUpdate('${id}')" class="flex items-center gap-2 px-4 py-2 bg-surface border border-outline-variant rounded-lg text-sm hover:border-secondary transition"><span class="material-symbols-outlined text-[18px]">sync</span>Aktualizuj audyt</button>
+   <button onclick="wycenPrzedmiar('${id}',this)" class="flex items-center gap-2 px-4 py-2 bg-surface border border-outline-variant rounded-lg text-sm hover:border-secondary transition" title="Wypełnia przedmiar z folderu Drive cenami z bazy stawek WSK (bez zgadywania)"><span class="material-symbols-outlined text-[18px]">payments</span>Wyceń przedmiar</button>
+   <button onclick="sprawdzObmiar('${id}',this)" class="flex items-center gap-2 px-4 py-2 bg-surface border border-outline-variant rounded-lg text-sm hover:border-secondary transition" title="Silnik Mythos: vision czyta wymiary z rysunków i porównuje z przedmiarem — zawyżenia/zaniżenia/widma"><span class="material-symbols-outlined text-[18px]">rule</span>Sprawdź obmiar</button>
    <div class="flex items-center gap-2 px-4 py-2 rounded-lg text-white font-semibold text-sm ${bid?'bg-tertiary':'bg-wsk-orange'}"><span class="material-symbols-outlined text-[18px] ms-fill">${bid?'thumb_up':'flag'}</span>${bid?'SKŁADAĆ':'DECYZJA'}</div>
   </div></div>
 
+ <div class="mb-6 bg-surface border border-outline-variant rounded-xl p-4 flex items-center gap-3 flex-wrap">
+  <span class="material-symbols-outlined text-secondary">link</span>
+  <span class="text-sm font-semibold text-primary">Powiązane postępowanie:</span>
+  ${LINKP?`<a onclick="go('postepowanie',${Number(LINKP.id)})" class="text-sm text-secondary font-medium cursor-pointer hover:underline flex items-center gap-1">${esc(LINKP.nazwa)}<span class="material-symbols-outlined text-[16px]">arrow_forward</span></a>`
+   :'<span class="text-sm text-on-surface-variant">brak</span>'}
+  <select onchange="setAuditLink('${esc(id)}',this.value)" class="ml-auto border border-outline-variant rounded-lg p-1.5 text-xs bg-surface max-w-[280px]">
+   <option value="">— zmień powiązanie —</option>
+   <option value="null">✕ odepnij</option>
+   ${PROJ.map(p=>`<option value="${Number(p.id)}" ${LINKP&&Number(LINKP.id)===Number(p.id)?'selected':''}>#${Number(p.id)} ${esc((p.nazwa||'').slice(0,50))}</option>`).join('')}
+  </select></div>
+
+ ${_vers.length>1?`
+ <section class="mb-6 bg-surface border border-outline-variant rounded-xl shadow-ambient p-4">
+  <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+   <h3 class="font-bold text-primary flex items-center gap-2"><span class="material-symbols-outlined text-secondary">history</span>Wersje audytu (${_vers.length})</h3>
+   <div class="flex gap-1 flex-wrap">${_vers.map((a,i)=>`<button onclick="go('analiza','${esc(a.id)}')" class="pill px-2.5 py-1 text-xs font-semibold ${a.id===id?'bg-secondary text-white':'bg-surface border border-outline-variant text-on-surface-variant hover:border-secondary'}" title="${esc(a.id)} · ${new Date((a.mtime||0)*1000).toLocaleDateString('pl-PL')}">v${i+1}${i===_vers.length-1?' (najnowsza)':''}</button>`).join('')}</div>
+  </div>
+  ${_prev?`<p class="text-xs text-on-surface-variant mb-2">Różnice tej wersji (v${_idx+1}) względem poprzedniej (v${_idx}):</p>
+   <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+    ${diffRow('Wartość netto',fmtMln(_prev.netto_od)+(_prev.netto_do?' – '+fmtMln(_prev.netto_do):''),fmtMln(_cur.netto_od)+(_cur.netto_do?' – '+fmtMln(_cur.netto_do):''),null)}
+    ${diffRow('Materiały',(_prev.mat_count||0)+' poz.',(_cur.mat_count||0)+' poz.',(_cur.mat_count||0)-(_prev.mat_count||0))}
+    ${diffRow('Ryzyka',(_prev.risks||0),(_cur.risks||0),(_cur.risks||0)-(_prev.risks||0))}
+    ${diffRow('Krytyczne',(_prev.krit||0),(_cur.krit||0),(_cur.krit||0)-(_prev.krit||0))}
+   </div>
+   ${(_cur.bid!==_prev.bid)?`<p class="text-xs mt-2 font-semibold" style="color:#92400e">⚠ Zmiana rekomendacji: ${_prev.bid?'SKŁADAĆ':'DECYZJA'} → ${_cur.bid?'SKŁADAĆ':'DECYZJA'}</p>`:''}
+   ${_matDiff?`<details class="mt-3 border-t border-outline-variant pt-3">
+    <summary class="cursor-pointer text-sm font-semibold text-primary flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-secondary">difference</span>Różnice materiałów (<span style="color:#0f7a4d">+${_matDiff.dodane.length}</span> / <span style="color:#93000a">−${_matDiff.usuniete.length}</span> / <span style="color:#92400e">~${_matDiff.zmienione.length}</span>)</summary>
+    <div class="mt-3 space-y-3 text-sm">
+     ${_matDiff.dodane.length?`<div><p class="text-xs font-bold mb-1" style="color:#0f7a4d">➕ Dodane (${_matDiff.dodane.length})</p><ul class="space-y-0.5">${_matDiff.dodane.map(x=>`<li class="flex justify-between gap-2 border-l-2 pl-2" style="border-color:#0f7a4d"><span>${esc(x.mat||'')}${x.branza?' <span class="text-on-surface-variant text-xs">('+esc(x.branza)+')</span>':''}</span><span class="tnum text-on-surface-variant whitespace-nowrap">${x.il!=null?esc(x.il+' '+(x.jedn||'')):''}${x.wart?' · '+fmtZl(x.wart):''}</span></li>`).join('')}</ul></div>`:''}
+     ${_matDiff.usuniete.length?`<div><p class="text-xs font-bold mb-1" style="color:#93000a">➖ Usunięte (${_matDiff.usuniete.length})</p><ul class="space-y-0.5">${_matDiff.usuniete.map(x=>`<li class="flex justify-between gap-2 border-l-2 pl-2 line-through text-on-surface-variant" style="border-color:#93000a"><span>${esc(x.mat||'')}</span><span class="tnum whitespace-nowrap">${x.il!=null?esc(x.il+' '+(x.jedn||'')):''}</span></li>`).join('')}</ul></div>`:''}
+     ${_matDiff.zmienione.length?`<div><p class="text-xs font-bold mb-1" style="color:#92400e">✎ Zmienione (${_matDiff.zmienione.length})</p><ul class="space-y-0.5">${_matDiff.zmienione.map(z=>`<li class="border-l-2 pl-2" style="border-color:#92400e"><span>${esc(z.x.mat||'')}</span> <span class="text-xs">${z.dIl?`<span style="color:${z.dIl>0?'#93000a':'#0f7a4d'}">ilość ${esc((z.p.il||0)+'→'+(z.x.il||0)+' '+(z.x.jedn||''))}</span>`:''}${z.dW?` · <span style="color:${z.dW>0?'#93000a':'#0f7a4d'}">wartość ${z.dW>0?'+':''}${fmtZl(z.dW)}</span>`:''}</span></li>`).join('')}</ul></div>`:''}
+     ${(!_matDiff.dodane.length&&!_matDiff.usuniete.length&&!_matDiff.zmienione.length)?'<p class="text-on-surface-variant text-xs">Lista materiałów identyczna w obu wersjach.</p>':''}
+     <p class="text-[11px] text-on-surface-variant pt-1">Dopasowanie po nazwie materiału — drobne różnice w pisowni mogą pokazać pozycję jako dodaną+usuniętą. Pełny kontekst w arkuszu Google.</p>
+    </div></details>`:`<p class="text-[11px] text-on-surface-variant mt-2">Pełną listę pozycja-po-pozycji porównasz w arkuszu Google obu wersji.</p>`}`
+  :`<p class="text-xs text-on-surface-variant">To pierwsza wersja — brak poprzedniej do porównania.</p>`}
+ </section>`:''}
  <details class="mb-6 bg-secondary/5 border border-secondary/30 rounded-xl p-4">
   <summary class="cursor-pointer text-sm font-semibold text-primary flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-secondary">sync</span>Jak zaktualizować audyt, gdy dojdą nowe dokumenty / odpowiedzi</summary>
   <div class="text-sm text-on-surface-variant mt-3 space-y-2 leading-relaxed">
@@ -327,11 +563,14 @@ VIEWS.analiza=async(app,id)=>{
  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
   <div class="rounded-xl p-5 text-white shadow-ambient" style="background:linear-gradient(135deg,#0d2b4e,#13386a)">
    <div class="text-xs uppercase tracking-wider font-semibold text-secondary-fixed-dim">Wartość szacunkowa</div>
-   <div class="text-2xl font-extrabold mt-1">${fmtMln(nod)}${ndo?' – '+fmtMln(ndo):''}</div>
-   <div class="text-xs text-white/70">netto · brutto ${fmtMln(v.brutto_od)}${v.brutto_do?'–'+fmtMln(v.brutto_do):''}</div></div>
+   <div class="text-2xl font-extrabold mt-1">${fmtWart(nod,ndo)}</div>
+   <div class="text-xs text-white/70">netto · brutto ${fmtWart(v.brutto_od,v.brutto_do)}</div></div>
   ${kpi('inventory_2','Materiały (M00)',fmtPLN(d.mat_total),d.materials.length+' pozycji','#0058be')}
   ${kpi('warning','Ryzyka',d.risks.length,krit+' krytyczne','#d35400')}
-  ${kpi('event','Termin / wadium',esc(m.termin||'—'),'wadium '+esc(m.wadium||'—'),'#0d2b4e')}
+  ${(()=>{ // termin: żywy z powiązanego postępowania (sync z portalu) > metryka xlsx
+    const t=(LINKP&&LINKP.termin_skladania)||m.termin||'—';
+    const zrodlo=(LINKP&&LINKP.termin_skladania)?'z portalu'+(LINKP.dni_do_terminu!=null?' · '+LINKP.dni_do_terminu+' dni':''):'';
+    return kpi('event','Termin / wadium',esc(t),(zrodlo?zrodlo+' · ':'')+'wadium '+esc(m.wadium||'—'),'#0d2b4e');})()}
  </div>
 
  ${renderMetryka(d)}
@@ -399,6 +638,9 @@ VIEWS.analiza=async(app,id)=>{
    <button onclick="openPismo('${(d.meta&&d.meta.id)||''}')" class="flex items-center gap-2 px-4 py-2 bg-secondary text-white rounded-lg text-sm font-semibold hover:bg-secondary/90 transition"><span class="material-symbols-outlined text-[18px]">description</span>Pismo do zamawiającego (Google Docs)</button></div>
   <ul class="divide-y divide-outline-variant">${d.questions.map(q=>`<li class="flex gap-3 py-2.5"><span class="material-symbols-outlined text-[18px] text-secondary shrink-0 mt-0.5">help</span><span class="text-sm text-on-surface-variant leading-relaxed">${esc(q)}</span></li>`).join('')}</ul>
   <p class="text-[11px] text-on-surface-variant mt-3">Pismo = gotowy „Wniosek o wyjaśnienie treści SWZ" (art. 135 Pzp) z danymi zamawiającego i pytaniami — otwiera się w Google Docs do edycji i wysłki.</p></section>`:''}
+
+ <!-- Weryfikacja obmiaru (silnik Mythos: rysunek↔przedmiar) — etap 4 UI -->
+ <section id="obmiar-box" class="mt-6"></section>
  `;
  // koszty chart
  const g=d.groups||[];
@@ -410,7 +652,91 @@ VIEWS.analiza=async(app,id)=>{
  const counts={}; d.materials.forEach(m=>counts[m.stat]=(counts[m.stat]||0)+1);
  $('#chips').innerHTML='<button onclick="chipFilt(this,\'\')" class="chip text-xs font-bold px-3 py-1 rounded-full border border-outline-variant bg-surface-container ring-2 ring-secondary">Wszystkie</button>'+
   Object.entries(counts).map(([k,v])=>`<button onclick="chipFilt(this,'${esc(k)}')" class="chip text-xs font-bold px-3 py-1 rounded-full border" style="color:${ST[k]||'#64748b'};border-color:${(ST[k]||'#64748b')}55">${esc(k)} · ${v}</button>`).join('');
+ renderObmiar(id);   // etap 4: wczytaj zapisany wynik obmiaru (jeśli jest)
 };
+// ════════ Weryfikacja obmiaru (silnik Mythos) — etap 4 UI ════════
+const OBM_CAT={PRZEDMIAR_ZAWYZONY:['Zawyżenie','#dc2626'],PRZEDMIAR_ZANIZONY:['Zaniżenie','#d97706'],
+ POZYCJA_WIDMO:['Pozycja-widmo','#db2777'],BRAK_POZYCJI:['Brak pozycji','#2563eb'],
+ BLAD_JEDNOSTKI:['Błąd jednostki','#7c3aed'],ROZBIEZNOSC_RYSUNEK_OPIS:['Rozbieżność rys.↔opis','#0058be'],
+ ROZBIEZNOSC_RYSUNEK_RYSUNEK:['Konflikt rysunków','#0058be'],NIEZGODNOSC_NORMATYWNA:['Niezgodność normy','#9333ea'],
+ BRAK_DANYCH:['Do weryfikacji','#64748b'],ROZBIEZNOSC_FORMALNA_PZP:['Formalne Pzp','#0d9488']};
+function obmKpi(label,val,col){return `<div class="rounded-xl p-3 border border-outline-variant bg-surface"><div class="text-2xl font-extrabold" style="color:${col}">${val}</div><div class="text-[11px] uppercase tracking-wider text-on-surface-variant">${label}</div></div>`;}
+function obmiarRow(f){
+ const cat=OBM_CAT[f.category]||[f.category||'—','#64748b'];
+ const c=f.compare_to_doc||{}, v=f.verification||{};
+ const py=(v.python_result!=null)?v.python_result:(c.obmiar_python!=null?c.obmiar_python:null);
+ const doc=(c.doc_value!=null)?c.doc_value:null;
+ const flag=f.flag_for_human?'<span class="material-symbols-outlined text-[15px] align-middle" style="color:#b45309" title="do weryfikacji ręcznej">flag</span>':'';
+ const st=v.status==='VERIFIED_OK'?'<span class="pill" style="background:#16a34a1a;color:#16a34a">zweryfikowane</span>':
+   v.status==='REJECTED_MATH_MISMATCH'?'<span class="pill" style="background:#9a34121a;color:#9a3412">odrzucone (szum)</span>':
+   '<span class="pill" style="background:#b452091a;color:#b45309">do człowieka</span>';
+ const delta=(c.delta_abs!=null&&c.delta_pct!=null)?`<div class="text-[11px] text-on-surface-variant">Δ ${c.delta_abs} (${c.delta_pct}%)</div>`:'';
+ return `<tr><td class="py-2 px-3 align-top"><span class="pill" style="background:${cat[1]}1a;color:${cat[1]}">${esc(cat[0])}</span> ${flag}</td>
+  <td class="py-2 px-3 align-top">${f._rys_link?`<a href="${esc(f._rys_link)}" target="_blank" rel="noopener" class="text-xs font-semibold px-2 py-0.5 rounded bg-secondary/10 text-secondary whitespace-nowrap hover:bg-secondary/20 inline-flex items-center gap-1" title="Otwórz arkusz w Google Drive (zoom)">${esc(f._rys||'—')}<span class="material-symbols-outlined text-[13px]">open_in_new</span></a>`:`<span class="text-xs font-semibold px-2 py-0.5 rounded bg-surface-container text-on-surface-variant whitespace-nowrap">${esc(f._rys||'—')}</span>`}</td>
+  <td class="py-2 px-3 text-on-surface align-top">${esc((f.claim||'').slice(0,160))}${delta}</td>
+  <td class="py-2 px-3 text-right tnum align-top">${py!=null?py:'—'}</td>
+  <td class="py-2 px-3 text-right tnum text-on-surface-variant align-top">${doc!=null?doc:'—'}</td>
+  <td class="py-2 px-3 text-right tnum font-semibold align-top">${c.kwota_ryzyka_zl?`<span style="color:${c.direction==='OVERSTATED'?'#dc2626':'#d97706'}">${fmtPLN(c.kwota_ryzyka_zl)}</span>`:'<span class="text-on-surface-variant" title="Pozycja ryczałtowa (kpl) lub niepewna — kwota niepoliczalna automatycznie, sprawdź ręcznie">—</span>'}</td>
+  <td class="py-2 px-3 align-top">${st}</td></tr>`;
+}
+function obmiarHTML(aid,r){
+ const head=`<div class="flex items-center justify-between flex-wrap gap-3 mb-4 border-b border-outline-variant pb-3">
+   <div class="flex items-center gap-2"><span class="material-symbols-outlined text-secondary ms-fill">rule</span>
+    <h3 class="font-bold text-primary text-lg">Weryfikacja obmiaru <span class="text-sm font-normal text-on-surface-variant">rysunek ↔ przedmiar</span></h3></div>
+   <button id="obmiar-btn" onclick="sprawdzObmiar('${esc(aid)}',this)" class="flex items-center gap-2 px-4 py-2 bg-secondary text-white rounded-lg text-sm font-semibold hover:bg-secondary/90 transition">
+    <span class="material-symbols-outlined text-[18px]">${r&&!r.error?'refresh':'play_arrow'}</span>${r&&!r.error?'Przelicz ponownie':'Sprawdź obmiar'}</button></div>`;
+ const wrap=inner=>`<section class="bg-surface border border-outline-variant rounded-xl p-6 shadow-ambient">${head}${inner}</section>`;
+ if(!r) return wrap(`<p class="text-sm text-on-surface-variant">Silnik <b>Mythos</b> czyta wymiary z rysunków CAD (vision) i porównuje z przedmiarem — wykrywa <b>zawyżenia</b>, <b>zaniżenia</b> i <b>pozycje-widmo</b>, każdą z dowodem. Wymaga podpiętego folderu Drive. Kliknij <b>„Sprawdź obmiar"</b> — leci w tle (kilka–kilkanaście minut).</p>`);
+ if(r.error) return wrap(`<p class="text-sm" style="color:#b45309">${esc(r.hint||r.error)}</p>`);
+ // oznacz KAŻDE znalezisko rysunkiem źródłowym (kod z metryczki lub nazwa pliku);
+ // deterministyczne (z przedmiaru) → 'przedmiar'
+ const det=(r.findings_deterministyczne||[]).map(f=>Object.assign({},f,{_rys:'przedmiar'}));
+ let fr=[];
+ (r.findings_rysunki||[]).forEach(x=>{(x.findings||[]).forEach(f=>{
+   f._rys=(f.source&&f.source.drawing_no)||(x.rysunek||'').replace(/\.pdf.*$/i,'').replace(/^Załącznik nr \d+ do SWZ - /i,'').slice(0,22)||'—';
+   f._rys_link=x.link||null; fr.push(f);});});
+ const all=det.concat(fr), pod=r.podsumowanie||{}, idx=r.indeks||{};
+ const kz=pod.kwota_zawyzen_zl||0, kn=pod.kwota_zanizen_zl||0;
+ const banner=(kz||kn)?`<div class="rounded-xl p-4 mb-4 flex items-center gap-4 flex-wrap shadow-ambient" style="background:linear-gradient(135deg,#7f1d1d,#9a3412)">
+   <span class="material-symbols-outlined text-white text-[34px]">savings</span>
+   <div><div class="text-white/75 text-[11px] uppercase tracking-wider font-semibold">Kwota ryzyka (zweryfikowana, z cen przedmiaru)</div>
+    <div class="text-2xl font-extrabold text-white mt-0.5">${fmtPLN(kz)} <span class="text-sm font-normal text-white/70">zawyżeń</span>${kn?` &nbsp;·&nbsp; ${fmtPLN(kn)} <span class="text-sm font-normal text-white/70">zaniżeń</span>`:''}</div></div></div>`:'';
+ const kpis=banner+`<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+   ${obmKpi('rysunków',idx.rysunkow||0,'#0058be')}
+   ${obmKpi('pozycji przedmiaru',idx.pozycji_przedmiaru||0,'#0d2b4e')}
+   ${obmKpi('znalezisk',pod.znalezisk_lacznie!=null?pod.znalezisk_lacznie:all.length,'#d35400')}
+   ${obmKpi('do weryfikacji',pod.do_weryfikacji_recznej||0,'#b45309')}</div>`;
+ const rows=all.map(obmiarRow).join('')||'<tr><td colspan="7" class="py-3 px-3 text-sm text-on-surface-variant">Brak rozbieżności — obmiar zgodny z przedmiarem.</td></tr>';
+ return wrap(`${kpis}
+  <div class="overflow-auto max-h-[34rem] rounded-lg border border-outline-variant"><table class="dtable w-full text-sm">
+   <thead><tr class="text-left text-[11px] uppercase tracking-wide text-on-surface-variant">
+    <th class="py-2.5 px-3 font-semibold">Kategoria</th><th class="py-2.5 px-3 font-semibold">Rysunek</th><th class="py-2.5 px-3 font-semibold">Co wykrył</th>
+    <th class="py-2.5 px-3 font-semibold text-right">Obmiar</th><th class="py-2.5 px-3 font-semibold text-right">Przedmiar</th>
+    <th class="py-2.5 px-3 font-semibold text-right">Kwota ryzyka</th>
+    <th class="py-2.5 px-3 font-semibold">Werdykt</th></tr></thead><tbody>${rows}</tbody></table></div>
+  <p class="text-[11px] text-on-surface-variant mt-2">LLM proponuje rozbity obmiar, deterministyczny kod orzeka (odrzuca halucynacje arytmetyczne). „1 kpl vs N szt" bywa legalną wyceną ryczałtową → flaga do weryfikacji, nie pewny błąd.</p>`);
+}
+async function renderObmiar(aid){
+ const box=document.getElementById('obmiar-box'); if(!box)return;
+ let r=null;
+ try{ const res=await fetch('/api/audyt-dokumentacji/wynik/'+encodeURIComponent(aid)); if(res.ok) r=await res.json(); }catch(e){}
+ box.innerHTML=obmiarHTML(aid,r);
+}
+async function sprawdzObmiar(aid,btn){
+ const box=document.getElementById('obmiar-box');
+ if(btn){btn.disabled=true;btn.innerHTML='<span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>Liczę…';}
+ try{
+  const start=await (await fetch('/api/audyt-dokumentacji/z-audytu',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audyt:aid})})).json();
+  if(start.error){ if(box) box.innerHTML=obmiarHTML(aid,{error:start.error,hint:start.hint}); return; }
+  for(let i=0;i<480;i++){   // 480×5s=40 min — pełny audyt 12 rysunków bywa ~37 min
+   await new Promise(res=>setTimeout(res,5000));
+   const st=await (await fetch('/api/audyt-dokumentacji/z-audytu/'+start.jid)).json();
+   if(st.status==='done'){ await renderObmiar(aid); return; }
+   if(st.status==='error'){ if(box) box.innerHTML=obmiarHTML(aid,{error:'error',hint:st.error||'Błąd liczenia obmiaru.'}); return; }
+  }
+  if(box) box.innerHTML=obmiarHTML(aid,{error:'timeout',hint:'Liczenie trwa dłużej niż zwykle — odśwież widok za chwilę.'});
+ }catch(e){ alert('Błąd: '+e.message); if(btn){btn.disabled=false;btn.textContent='Sprawdź obmiar';} }
+}
 function matRow(m){const c=ST[m.stat]||'#64748b';return `<tr data-s="${esc(m.stat)}">
  <td class="py-2 px-3 text-on-surface">${esc(m.mat)}</td><td class="py-2 px-3 text-xs text-on-surface-variant">${esc(m.branza)}</td>
  <td class="py-2 px-3 text-right tnum">${esc(m.il)}</td><td class="py-2 px-3 text-on-surface-variant">${esc(m.jedn)}</td>
@@ -481,7 +807,7 @@ async function openUpdate(aid){
  const upd=s=>{ const pe=document.getElementById('u-pct'); if(!pe)return; pe.textContent=(s.pct||0)+'%'; document.getElementById('u-bar').style.width=(s.pct||0)+'%'; if(s.stage)document.getElementById('u-stage').textContent=s.stage; const lg=s.log||[]; for(let i=nlog;i<lg.length;i++) uLog(lg[i].m); nlog=lg.length; };
  ES.onmessage=ev=>upd(JSON.parse(ev.data));
  ES.addEventListener('done',ev=>{ const s=JSON.parse(ev.data); upd(s); ES.close(); const f=document.getElementById('u-foot'); if(f){f.classList.remove('hidden'); f.innerHTML=s.ok?`<button onclick="document.getElementById('updModal').remove();go('analiza','${aid}')" class="w-full bg-tertiary text-white py-2 rounded-lg font-semibold">Gotowe — pokaż zaktualizowany audyt</button>`:'<div class="text-sm text-error">Zakończono z błędem — sprawdź log powyżej.</div>';} });
- ES.addEventListener('error',()=>uLog('ERR\tPołączenie przerwane.'));
+ ES.addEventListener('error',()=>uLog('INFO\tPodgląd chwilowo przerwany — odnawiam połączenie (job działa dalej w tle).'));
 }
 function uLog(m){ const l=document.getElementById('u-log'); if(!l)return; let lvl='MSG',txt=m; const i=(''+m).indexOf('\t'); if(i>0){lvl=m.slice(0,i);txt=m.slice(i+1);} const c={STAGE:'#60a5fa',TOOL:'#94a3b8',MSG:'#cbd5e1',INFO:'#38bdf8',OK:'#34d399',ERR:'#f87171'}[lvl]||'#cbd5e1'; const row=document.createElement('div'); row.className='py-0.5'; row.innerHTML='<span style="color:'+c+'">'+esc(txt)+'</span>'; l.appendChild(row); l.scrollTop=l.scrollHeight; }
 
@@ -495,6 +821,104 @@ async function openDoc(aid,el){
   else if(r.error==='no_source'){ if(w) w.close(); const inp=document.getElementById('srcUrl_'+aid); if(inp){inp.focus();inp.classList.add('ring-2','ring-secondary');} alert('Najpierw podepnij źródłowy folder Drive — wklej link w polu „folder z dokumentacją" na górze sekcji „Co przeanalizowane" i kliknij „Podepnij folder".'); }
   else { const msg='Nie udało się otworzyć: '+(r.error||'błąd'); if(w) w.document.body.innerHTML='<div style="font-family:Inter,sans-serif;padding:3rem;color:#92400e">'+msg+'</div>'; else alert(msg); }
  }catch(e){ if(w) w.document.body.innerHTML='<div style="font-family:sans-serif;padding:3rem;color:#b91c1c">Błąd sieci.</div>'; }
+}
+
+// dostrojenie 2026-06-12: wycena przedmiaru stawkami WSK — AI tylko czyta
+// strukturę dokumentu, ceny wyłącznie z bazy (kosztorysy WSK > audyty)
+async function wycenPrzedmiar(aid,btn){
+ const stary=btn?btn.innerHTML:'';
+ if(btn){btn.disabled=true;btn.innerHTML='<span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>Wyceniam…';}
+ try{
+  // job w tle + polling — strukturyzacja dużego przedmiaru trwa kilka-kilkanaście
+  // minut, CF ucina pojedynczy request po ~100 s
+  const start=await(await fetch('/api/wiedza-cen/wycen-przedmiar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audyt:aid})})).json();
+  if(start.error||!start.jid){alert(start.hint||start.error||'Nie wystartowało');}
+  else{
+   let r=start, czekam=0;
+   while(r.status==='running'){
+    if(czekam>=1800){alert('Wycena trwa ponad 30 min — przerwano oczekiwanie. Sprawdź logi lub spróbuj ponownie.');break;}
+    await new Promise(s=>setTimeout(s,6000)); czekam+=6;
+    if(btn) btn.innerHTML=`<span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>Wyceniam… ${Math.floor(czekam/60)}:${String(czekam%60).padStart(2,'0')}`;
+    try{ r=await(await fetch('/api/wiedza-cen/wycen-przedmiar/'+start.jid)).json(); }catch(e){}
+   }
+   if(r.status==='running'){if(btn){btn.disabled=false;btn.innerHTML=stary;}return;}
+   if(r.status==='error'){alert(r.hint||r.error||'Błąd wyceny');}
+   else{
+    const ok=confirm(`Wyceniono ${r.wycenione}/${r.pozycji} pozycji (${r.pokrycie_proc}% pokrycia)\nSuma wycenionych: ${(r.suma||0).toLocaleString('pl-PL',{minimumFractionDigits:2})} zł netto\nBrak danych: ${r.brak_danych} pozycji (w arkuszu na pomarańczowo)\n\nPlik: ${r.plik}\nOtworzyć arkusz na Drive?`);
+    if(ok&&r.url) window.open(r.url,'_blank');
+   }
+  }
+ }catch(e){alert('Błąd: '+e.message);}
+ if(btn){btn.disabled=false;btn.innerHTML=stary;}
+}
+
+// dostrojenie 2026-06-12: linie zmian monitoringu w języku frontendu —
+// Material icons + chipy nazw plików zamiast surowych linii z emoji
+function renderZmianaLinie(opis){
+ const linie=String(opis||'').split('\n').filter(l=>l.trim());
+ const grupy=[]; // {typ, items[]} — kolejne linie tego samego typu sklejamy
+ const typLinii=l=>l.startsWith('📄')?'add':l.startsWith('🗑')?'del':l.startsWith('⏰')?'term':l.startsWith('💰')?'kwota':l.startsWith('📥')?'auto':l.startsWith('📢')?'ogl':l.startsWith('✏️')?'edit':'txt';
+ for(const l of linie){
+  const t=typLinii(l);
+  if((t==='add'||t==='del')&&grupy.length&&grupy[grupy.length-1].typ===t) grupy[grupy.length-1].items.push(l);
+  else grupy.push({typ:t,items:[l]});
+ }
+ const ICON={add:['note_add','#0058be','Nowe dokumenty'],del:['scan_delete','#64748b','Zniknęły z portalu'],
+  term:['schedule','#d35400'],kwota:['payments','#16a34a'],auto:['download_done','#16a34a'],ogl:['campaign','#0058be'],edit:['edit_note','#64748b']};
+ return grupy.map(g=>{
+  const [ik,kolor,label]=ICON[g.typ]||['info','#64748b'];
+  if(g.typ==='add'||g.typ==='del'){
+   const nazwy=g.items.map(l=>l.replace(/^📄 Nowy dokument:\s*|^🗑 Usunięto dokument:\s*/,''));
+   return `<div class="flex items-start gap-2 py-1"><span class="material-symbols-outlined text-[18px] mt-0.5" style="color:${kolor}">${ik}</span>
+    <div class="min-w-0"><span class="text-xs font-semibold text-on-surface-variant">${label} (${nazwy.length}):</span>
+    <span class="inline-flex flex-wrap gap-1 ml-1 align-middle">${nazwy.map(n=>`<span class="pill text-[11px] ${g.typ==='add'?'bg-secondary/10 text-secondary':''}" style="${g.typ==='del'?'background:#eceef0;color:#64748b':''}">${esc(n)}</span>`).join('')}</span></div></div>`;
+  }
+  return g.items.map(l=>{
+   let t=l.replace(/^[📄🗑⏰💰📥📢✏️]+\s*/u,'');
+   t=t.replace(/:\s*None\s*→\s*/,': ustalono ');  // "None → x" czytelniej
+   // 📥 z listą plików ("Pobrano...: a | b | c") → nazwy jako chipy
+   if(g.typ==='auto'&&t.includes(': ')&&t.includes(' | ')||g.typ==='auto'&&/: .+/.test(t)&&t.split(': ')[1]&&t.split(': ')[1].includes('|')){
+    const [etyk,reszta]=[t.slice(0,t.indexOf(': ')),t.slice(t.indexOf(': ')+2)];
+    const chipy=reszta.split(' | ').map(n=>`<span class="pill text-[11px]" style="background:#c7f3dc;color:#00391f">${esc(n)}</span>`).join('');
+    return `<div class="flex items-start gap-2 py-1"><span class="material-symbols-outlined text-[18px] mt-0.5" style="color:${kolor}">${ik}</span>
+     <div class="min-w-0"><span class="text-xs font-semibold text-on-surface-variant">${esc(etyk)}:</span>
+     <span class="inline-flex flex-wrap gap-1 ml-1 align-middle">${chipy}</span></div></div>`;
+   }
+   return `<div class="flex items-start gap-2 py-1"><span class="material-symbols-outlined text-[18px] mt-0.5" style="color:${kolor}">${ik}</span>
+    <span class="text-sm text-on-surface leading-snug min-w-0">${esc(t)}</span></div>`;
+  }).join('');
+ }).join('');
+}
+
+async function pobierzBrakujace(pid,btn){
+ const stary=btn?btn.innerHTML:'';
+ if(btn){btn.disabled=true;btn.innerHTML='⏳ Pobieram…';}
+ try{
+  const r=await(await fetch('/api/przetargi/'+pid+'/pobierz-dokumenty',{method:'POST'})).json();
+  if(r.error){alert(r.hint||r.error);}
+  else{
+   const n=(r.pobrane||[]).length, b=(r.bledy||[]).length;
+   alert(r.info||(`Pobrano ${n} plik(ów) do folderu Drive`+(b?`\nBłędy (${b}):\n`+r.bledy.join('\n'):'')));
+   go('postepowanie',pid);
+  }
+ }catch(e){alert('Błąd: '+e.message);}
+ if(btn){btn.disabled=false;btn.innerHTML=stary;}
+}
+
+async function pobierzPdf(aid,btn){
+ const stary=btn?btn.innerHTML:'';
+ if(btn){btn.disabled=true;btn.innerHTML='<span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>Generuję…';}
+ try{
+  const r=await fetch(API+'/pdf/'+encodeURIComponent(aid));
+  if(!r.ok){const e=await r.json().catch(()=>({}));alert(e.error||'Nie udało się wygenerować PDF.');}
+  else{
+   const blob=await r.blob();
+   const u=URL.createObjectURL(blob);
+   const a=document.createElement('a');a.href=u;a.download=aid+'_raport.pdf';document.body.appendChild(a);a.click();a.remove();
+   setTimeout(()=>URL.revokeObjectURL(u),5000);
+  }
+ }catch(e){alert('Błąd sieci: '+e.message);}
+ if(btn){btn.disabled=false;btn.innerHTML=stary;}
 }
 
 async function openPismo(id){
@@ -633,14 +1057,14 @@ async function startAnalysis(){
  const log=$('#p-log'); log.innerHTML='';
  let r;
  try{ r=await (await fetch(API+'/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url,mode})})).json(); }
- catch(e){ addLog('ERR\tBłąd startu: '+e.message); return; }
+ catch(e){ addLog('ERR\tBłąd startu: '+e.message); $('#form').classList.remove('opacity-50','pointer-events-none'); return; }
  if(r.error){ addLog('ERR\t'+r.error); $('#form').classList.remove('opacity-50','pointer-events-none'); return; }
  if(ES)ES.close();
  ES=new EventSource(API+'/progress/'+r.job_id+'?token='+encodeURIComponent(TOKEN));
  let nlog=0;
  ES.onmessage=ev=>{ const s=JSON.parse(ev.data); paint(s,()=>nlog,n=>nlog=n); };
  ES.addEventListener('done',ev=>{ const s=JSON.parse(ev.data); paint(s,()=>nlog,n=>nlog=n); ES.close(); finishAnalysis(s,mode); });
- ES.addEventListener('error',()=>{ addLog('ERR\tPołączenie przerwane.'); });
+ ES.addEventListener('error',()=>{ addLog('INFO\tPołączenie przerwane — job działa dalej. Odśwież, by zobaczyć wynik lub uruchomić nową analizę.'); $('#form').classList.remove('opacity-50','pointer-events-none'); });
 }
 function paint(s,getN,setN){
  $('#p-pct').textContent=(s.pct||0)+'%';
@@ -674,7 +1098,7 @@ async function finishAnalysis(s,mode){
  if(mode==='real'&&s.result_id){
   await loadAudits();
   done.innerHTML=`<span class="material-symbols-outlined text-tertiary ms-fill">check_circle</span><span class="text-sm">Raport gotowy.</span>
-   <button onclick="go('analiza','${s.result_id}')" class="ml-auto bg-secondary text-white px-4 py-2 rounded-lg text-sm font-semibold">Otwórz analizę →</button>`;
+   <button onclick='go("analiza", ${JSON.stringify(String(s.result_id||""))})' class="ml-auto bg-secondary text-white px-4 py-2 rounded-lg text-sm font-semibold">Otwórz analizę →</button>`;
  } else if(mode==='demo'){
   done.innerHTML=`<span class="material-symbols-outlined text-tertiary ms-fill">check_circle</span>
    <span class="text-sm">Podgląd zakończony. W trybie <b>pełnej analizy</b> powstanie realny raport xlsx.</span>
@@ -723,14 +1147,42 @@ VIEWS.raporty=async(app)=>{
 };
 
 // ================= PLATFORMA: wspólne
+// dostrojenie 2026-08-24: ERP-BUD nie ma pola lokalizacji → backend dokłada
+// `lokalizacja_auto` (nazwa/zamawiający/opis). Baza dalej jest źródłem prawdy.
+function lokPrz(p){ return (p&&(p.lokalizacja||p.lokalizacja_auto))||''; }
 const jget=async u=>{const r=await fetch(u);if(!r.ok)throw new Error('HTTP '+r.status);return r.json();};
 function stars(v){v=Number(v)||0;const full=Math.round(v);let s='';for(let i=1;i<=5;i++)s+=`<span class="material-symbols-outlined text-[16px] ms-fill" style="color:${i<=full?'#f59e0b':'#cbd5e1'}">star</span>`;return s;}
 function chips(arr,color){return (arr||[]).map(x=>`<span class="text-[11px] px-2 py-0.5 rounded-full" style="background:${color}1a;color:${color}">${esc(x)}</span>`).join(' ');}
 
 // ================= PRZETARGI (moduł platformy)
 VIEWS.postepowania=async(app)=>{
- const arr=(await jget('/api/przetargi'))||[];
- const sum=arr.reduce((s,p)=>s+(Number(p.wartosc_szacunkowa)||0),0);
+ // dostrojenie 2026-06-12: archiwum poza główną listą (osobny widok)
+ // dostrojenie 2026-06-12 (2): wartości na bieżąco z audytów + lokalizacja
+ // z nazwy/zamawiającego + plakietka ERP
+ const [wszystkie,lk0]=await Promise.all([
+  jget('/api/przetargi').catch(()=>[]),
+  (async()=>{ if(!AUDITS.length) await loadAudits();
+   return jget('/api/analizator/audit-links').catch(()=>({links:{}})); })()
+ ]);
+ const linksP=(lk0&&lk0.links)||{};
+ const audMap={}; // projekt_id -> najnowszy powiązany audyt
+ for(const a of AUDITS){ const pid=Number(linksP[a.id]);
+  if(pid&&(!audMap[pid]||(a.mtime||0)>(audMap[pid].mtime||0))) audMap[pid]=a; }
+ const MIASTA=['Kołobrzeg','Białogard','Świnoujście','Resko','Koszalin','Dźwirzyno','Świdwin','Ustronie Morskie','Mielno','Siemyśl','Budzistowo','Grzybowo','Szczecin','Sarbinowo','Pobierowo'];
+ const lokalizacjaZ=p=>{ if(lokPrz(p)) return lokPrz(p);
+  const t=((p.zamawiajacy||'')+' '+(p.nazwa||'')).toLowerCase();
+  for(const m of MIASTA){ if(t.includes(m.slice(0,-1).toLowerCase())) return m; } return ''; };
+ const arr=wszystkie.filter(p=>!p.archiwum);
+ const archN=wszystkie.length-arr.length;
+ // sortowanie "co kiedy": nadchodzące terminy rosnąco, potem bez terminu, na końcu minione
+ arr.sort((a,b)=>{
+  const ka=a.dni_do_terminu==null?1e6:(a.dni_do_terminu<0?2e6-a.dni_do_terminu:a.dni_do_terminu);
+  const kb=b.dni_do_terminu==null?1e6:(b.dni_do_terminu<0?2e6-b.dni_do_terminu:b.dni_do_terminu);
+  return ka-kb;
+ });
+ // wartość z ERP bywa zaślepką (1 zł) — licz się tylko z sensownymi kwotami
+ const wartSens=p=>{const w=Number(p.wartosc_szacunkowa)||0; return w>1000?w:0;};
+ const sum=arr.reduce((s,p)=>s+(wartSens(p)||(audMap[p.id]&&audMap[p.id].netto_do)||0),0);
  const pilne=arr.filter(p=>p.dni_do_terminu!=null&&p.dni_do_terminu>=0&&p.dni_do_terminu<=7).length;
  app.innerHTML=`
  <div class="mb-6"><p class="text-sm text-secondary font-semibold uppercase tracking-wider">Platforma</p>
@@ -742,20 +1194,913 @@ VIEWS.postepowania=async(app)=>{
   ${kpi('schedule','Pilne terminy',pilne,'≤ 7 dni','#d35400')}
   ${kpi('rule','Z rozbieżnościami',arr.filter(p=>Number(p.rozbieznosci)>0).length,'wykrytymi','#dc2626')}
  </div>
+ ${archN?`<div class="mb-4 text-sm text-on-surface-variant">🗃 W archiwum: <a onclick="go('archiwum')" class="text-secondary font-semibold cursor-pointer hover:underline">${archN} postępowań →</a></div>`:''}
+ <div id="bulkbar" class="hidden mb-3 flex items-center gap-3 bg-surface border border-outline-variant rounded-xl px-4 py-2.5 shadow-ambient">
+  <span class="text-sm text-on-surface"><b id="bulkn">0</b> zaznaczonych</span>
+  <button onclick="bulkArchiwizuj(this)" class="bg-secondary text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:opacity-90 flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">archive</span>Przenieś do archiwum</button>
+  <button onclick="document.querySelectorAll('.sel-prz:checked').forEach(c=>c.checked=false);bulkOdswiez()" class="text-xs text-on-surface-variant hover:underline">odznacz</button></div>
  <section class="bg-surface border border-outline-variant rounded-xl shadow-ambient overflow-hidden">
   <div class="overflow-x-auto"><table class="dtable w-full text-sm text-left">
    <thead><tr class="text-[11px] uppercase tracking-wide text-on-surface-variant">
+    <th class="p-3 w-8"><input type="checkbox" onclick="document.querySelectorAll('.sel-prz').forEach(c=>c.checked=this.checked);bulkOdswiez()" class="rounded border-outline-variant text-secondary cursor-pointer" title="zaznacz wszystkie"></th>
     <th class="p-3 font-semibold">Postępowanie</th><th class="p-3 font-semibold">Zamawiający</th><th class="p-3 font-semibold">Lokalizacja</th><th class="p-3 font-semibold text-right">Wartość</th><th class="p-3 font-semibold">Termin</th><th class="p-3 font-semibold">Status</th></tr></thead>
    <tbody>${arr.map(p=>{const dni=p.dni_do_terminu;
      const dc=dni==null?['#eceef0','#64748b']:dni<0?['#e0e3e5','#64748b']:dni<=7?['#ffdad6','#93000a']:dni<=30?['#fde68a','#92400e']:['#c7f3dc','#00391f'];
-     return `<tr>
+     return `<tr onclick="go('postepowanie',${Number(p.id)})" class="cursor-pointer hover:bg-surface-container-low transition">
+      <td class="p-3" onclick="event.stopPropagation()"><input type="checkbox" class="sel-prz rounded border-outline-variant text-secondary cursor-pointer" value="${Number(p.id)}" onchange="bulkOdswiez()"></td>
+      <td class="p-3"><div class="font-medium text-primary">${esc(p.nazwa||'—')} ${p.erp?'<span class="pill text-[10px]" style="background:#ede9fe;color:#6d28d9" title="pobierane z ERP-BUD (sync co 5 min)">ERP</span>':''}</div><div class="text-xs text-on-surface-variant">${esc(p.numer_ref||p.numer_ogloszenia||'')}</div></td>
+      <td class="p-3 text-on-surface-variant">${esc(p.zamawiajacy||'—')}</td>
+      <td class="p-3 text-on-surface-variant">${esc(lokalizacjaZ(p)||'—')}</td>
+      <td class="p-3 text-right tnum font-semibold">${(()=>{
+        if(wartSens(p)) return fmtMln(wartSens(p));
+        const a=audMap[p.id];
+        if(a&&(a.netto_od||a.netto_do)) return `<span title="widełki z audytu ${esc(a.id)}">${fmtMln(a.netto_od||a.netto_do)}${a.netto_do&&a.netto_od?'–'+fmtMln(a.netto_do):''}</span><div class="text-[10px] font-normal text-on-surface-variant">z audytu</div>`;
+        return '—';})()}</td>
+      <td class="p-3 whitespace-nowrap"><span class="pill tnum" style="background:${dc[0]};color:${dc[1]}">${esc(p.termin_skladania||'—')}${dni!=null?' · '+dni+' dni':''}</span>${dni!=null&&dni<0?' <span class="pill" style="background:#eceef0;color:#64748b;font-size:10px">PO TERMINIE</span>':''}</td>
+      <td class="p-3"><div class="flex items-center gap-1"><span class="pill bg-secondary/10 text-secondary">${esc(p.statusLabel||p.status||'—')}</span>${dni!=null&&dni<0?`<button onclick="archiwizuj(${Number(p.id)},true,event)" title="Przenieś do archiwum" class="text-on-surface-variant hover:text-secondary p-1 rounded"><span class="material-symbols-outlined text-[18px]">archive</span></button>`:''}</div></td></tr>`;
+   }).join('')||'<tr><td colspan=7 class="p-8 text-center text-on-surface-variant">Brak postępowań.</td></tr>'}</tbody></table></div></section>`;
+};
+function bulkOdswiez(){
+ const n=document.querySelectorAll('.sel-prz:checked').length;
+ const bar=document.getElementById('bulkbar');
+ if(bar){bar.classList.toggle('hidden',!n);const el=document.getElementById('bulkn');if(el)el.textContent=n;}
+}
+async function bulkArchiwizuj(btn){
+ const ids=[...document.querySelectorAll('.sel-prz:checked')].map(c=>Number(c.value));
+ if(!ids.length)return;
+ if(!confirm(`Przenieść ${ids.length} postępowań do archiwum? (znikną z listy, można przywrócić)`))return;
+ if(btn){btn.disabled=true;btn.textContent='⏳ Przenoszę…';}
+ let ok=0,bledy=[];
+ for(const id of ids){
+  try{const r=await(await fetch('/api/przetargi/'+id+'/archiwum',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({archiwum:true})})).json();
+   if(r.ok)ok++;else bledy.push('#'+id);}catch(e){bledy.push('#'+id);}
+ }
+ if(bledy.length)alert('Do archiwum: '+ok+'. Nie udało się: '+bledy.join(', '));
+ go('postepowania');
+}
+
+// ================= ARCHIWUM postępowań (dostrojenie 2026-06-12)
+VIEWS.archiwum=async(app)=>{
+ const wszystkie=(await jget('/api/przetargi'))||[];
+ const arr=wszystkie.filter(p=>p.archiwum);
+ arr.sort((a,b)=>String(b.termin_skladania||'').localeCompare(String(a.termin_skladania||'')));
+ app.innerHTML=`
+ <div class="mb-6"><p class="text-sm text-secondary font-semibold uppercase tracking-wider">Platforma</p>
+  <h2 class="text-3xl font-extrabold text-primary">🗃 Archiwum postępowań</h2>
+  <p class="text-on-surface-variant">Zakończone/odłożone — bez monitoringu portali. Dane (oferty, kwoty, audyty) zostają do post-mortem cen.</p></div>
+ <section class="bg-surface border border-outline-variant rounded-xl shadow-ambient overflow-hidden">
+  <div class="overflow-x-auto"><table class="dtable w-full text-sm text-left">
+   <thead><tr class="text-[11px] uppercase tracking-wide text-on-surface-variant">
+    <th class="p-3 font-semibold">Postępowanie</th><th class="p-3 font-semibold">Zamawiający</th><th class="p-3 font-semibold">Termin był</th><th class="p-3 font-semibold">Status</th><th class="p-3 font-semibold"></th></tr></thead>
+   <tbody>${arr.map(p=>`<tr onclick="go('postepowanie',${Number(p.id)})" class="cursor-pointer hover:bg-surface-container-low transition opacity-80">
       <td class="p-3"><div class="font-medium text-primary">${esc(p.nazwa||'—')}</div><div class="text-xs text-on-surface-variant">${esc(p.numer_ref||p.numer_ogloszenia||'')}</div></td>
       <td class="p-3 text-on-surface-variant">${esc(p.zamawiajacy||'—')}</td>
-      <td class="p-3 text-on-surface-variant">${esc(p.lokalizacja||'—')}</td>
-      <td class="p-3 text-right tnum font-semibold">${p.wartosc_szacunkowa?fmtMln(Number(p.wartosc_szacunkowa)):'—'}</td>
-      <td class="p-3 whitespace-nowrap"><span class="pill tnum" style="background:${dc[0]};color:${dc[1]}">${esc(p.termin_skladania||'—')}${dni!=null?' · '+dni+' dni':''}</span></td>
-      <td class="p-3"><span class="pill bg-secondary/10 text-secondary">${esc(p.statusLabel||p.status||'—')}</span></td></tr>`;
-   }).join('')||'<tr><td colspan=6 class="p-8 text-center text-on-surface-variant">Brak postępowań.</td></tr>'}</tbody></table></div></section>`;
+      <td class="p-3 whitespace-nowrap text-on-surface-variant tnum">${esc(p.termin_skladania||'—')}</td>
+      <td class="p-3"><span class="pill bg-secondary/10 text-secondary">${esc(p.statusLabel||p.status||'—')}</span></td>
+      <td class="p-3 text-right"><button onclick="archiwizuj(${Number(p.id)},false,event)" class="text-xs text-secondary hover:underline whitespace-nowrap">↩ Przywróć</button></td></tr>`)
+   .join('')||'<tr><td colspan=5 class="p-8 text-center text-on-surface-variant">Archiwum puste.</td></tr>'}</tbody></table></div></section>`;
+};
+async function archiwizuj(id,flag,ev){
+ if(ev){ev.stopPropagation();ev.preventDefault();}
+ if(flag&&!confirm('Przenieść postępowanie do archiwum? Monitoring zostanie wyłączony (można przywrócić).'))return;
+ try{
+  const r=await(await fetch('/api/przetargi/'+id+'/archiwum',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({archiwum:flag})})).json();
+  if(!r.ok){alert(r.detail||r.error||'Nie udało się.');return;}
+  go(flag?'postepowania':'archiwum');
+ }catch(e){alert('Błąd: '+e.message);}
+}
+
+// ================= PRZETARG — szczegóły postępowania
+VIEWS.postepowanie=async(app,id)=>{
+ id=Number(id);
+ if(!id){return go('postepowania');}
+ app.innerHTML='<div class="flex items-center gap-3 text-on-surface-variant p-6"><span class="material-symbols-outlined animate-spin">progress_activity</span>Ładuję postępowanie…</div>';
+ // dostrojenie 2026-06-12: wszystkie fetche RÓWNOLEGLE (wcześniej sekwencyjnie,
+ // w tym 2 przejścia po Drive — widok otwierał się kilkanaście sekund)
+ const J=u=>jget(u).catch(()=>null);
+ const [arr,mon,OTW0,dokR,OFK0,FIRMY0,lk0]=await Promise.all([
+  J('/api/przetargi'), J('/api/przetargi/'+id+'/monitor'), J('/api/przetargi/'+id+'/otwarcie'),
+  J('/api/przetargi/'+id+'/dokumenty'), J('/api/przetargi/'+id+'/oferta-konfig'),
+  J('/api/firmy-oferenci'), (async()=>{ if(!AUDITS.length) await loadAudits();
+   return J('/api/analizator/audit-links'); })(),
+ ]);
+ const p=(arr||[]).find(x=>Number(x.id)===id);
+ if(!p){app.innerHTML='<div class="text-error p-6">Nie znaleziono postępowania #'+id+'</div>';return;}
+ const OTW=OTW0||{}, OFK=OFK0||{tryb:null,sklad:[]}, FIRMY=FIRMY0||[];
+ const dok=(dokR&&(dokR.dokumenty||dokR))||[];
+ const links=(lk0&&lk0.links)||{};
+ let audyty=AUDITS.filter(a=>Number(links[a.id])===id);
+ let DRV=null; // podgląd folderu Drive najnowszego audytu
+ // tylko najnowsza wersja per audyt (AUDYT_X_v1/_v2 → zostaje świeższy mtime);
+ // starsze wersje lądują w zwijanej sekcji, żeby nie mylić który aktualny
+ const bazaAud=a=>String(a.id).replace(/_v\d+$/,'');
+ audyty.sort((a,b)=>(b.mtime||0)-(a.mtime||0));
+ const widzianeBazy=new Set();
+ const audytyAktualne=[], audytyStare=[];
+ for(const a of audyty){ const b=bazaAud(a); if(widzianeBazy.has(b)) audytyStare.push(a); else {widzianeBazy.add(b); audytyAktualne.push(a);} }
+ if(audytyAktualne[0]&&/^AUDYT_[A-Za-z0-9_]+$/.test(audytyAktualne[0].id)) DRV=await J('/api/analizator/files/'+encodeURIComponent(audytyAktualne[0].id));
+ const dni=p.dni_do_terminu;
+ const dc=dni==null?['#eceef0','#64748b']:dni<0?['#e0e3e5','#64748b']:dni<=7?['#ffdad6','#93000a']:dni<=30?['#fde68a','#92400e']:['#c7f3dc','#00391f'];
+ const fmtDT=s=>{try{return new Date(s+'Z').toLocaleString('pl-PL',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});}catch(e){return s||'';}};
+ const url=p.url_postepowania||'';
+ const m=mon&&mon.monitor, zm=(mon&&mon.zmiany)||[];
+ app.innerHTML=`
+ <div class="mb-4 text-sm text-on-surface-variant flex items-center gap-1">
+  <a onclick="go('postepowania')" class="hover:text-secondary cursor-pointer">Przetargi</a>
+  <span class="material-symbols-outlined text-[16px]">chevron_right</span><span class="text-primary">${esc(p.nazwa||'#'+id)}</span></div>
+ <div class="mb-6 flex items-start justify-between gap-4 flex-wrap">
+  <div><p class="text-sm text-secondary font-semibold uppercase tracking-wider">Postępowanie #${id}</p>
+   <h2 class="text-3xl font-extrabold text-primary">${esc(p.nazwa||'—')}</h2>
+   <p class="text-on-surface-variant mt-1">${esc(p.zamawiajacy||'—')}${lokPrz(p)?' · '+esc(lokPrz(p)):''}</p></div>
+  <div class="flex items-center gap-2">${p.erp?'<span class="pill text-[11px]" style="background:#ede9fe;color:#6d28d9" title="pobierane z ERP-BUD">ERP</span>':''}<span class="pill bg-secondary/10 text-secondary text-sm">${esc(p.statusLabel||p.status||'—')}</span>
+   ${p.archiwum?'<span class="pill" style="background:#eceef0;color:#64748b">🗃 ARCHIWUM</span><button onclick="archiwizuj('+id+',false)" class="text-xs text-secondary hover:underline">↩ Przywróć</button>'
+     :'<button onclick="archiwizuj('+id+',true)" title="Wyłącza monitoring, dane zostają" class="flex items-center gap-1 text-xs text-on-surface-variant hover:text-secondary border border-outline-variant rounded-lg px-2 py-1"><span class="material-symbols-outlined text-[14px]">archive</span>Do archiwum</button>'}</div></div>
+ <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  ${(()=>{ // dostrojenie 2026-06-11: AKTUALNY audyt ma pierwszeństwo — po każdej
+    // aktualizacji audytu KPI pokazuje świeże widełki, nie stare pole projektu
+    const a0=audytyAktualne[0];
+    if(a0&&(a0.netto_od||a0.netto_do)) return kpi('payments','Wartość szac.',fmtWart(a0.netto_od,a0.netto_do),'netto · z audytu '+new Date((a0.mtime||0)*1000).toLocaleDateString('pl-PL'),'#0d2b4e');
+    if(Number(p.wartosc_szacunkowa)>0) return kpi('payments','Wartość szac.',fmtWart(Number(p.wartosc_szacunkowa),null),'netto','#0d2b4e');
+    return kpi('payments','Wartość szac.','—','netto','#0d2b4e');})()}
+  ${(()=>{ // dostrojenie 2026-06-11: godzina składania — z pola projektu albo z portalu (ISO)
+    let t=p.termin_skladania||'—';
+    if(t!=='—'&&!t.includes(':')){
+     const s=((mon&&mon.terminy_portal)||{}).SubmissionOffersDate||((mon&&mon.terminy_portal)||{}).submittingOffersDate||'';
+     if(String(s).includes('T')){try{const g=new Date(s).toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'});if(g!=='00:00')t+=' '+g;}catch(e){}}
+    }
+    return kpi('schedule','Termin składania',esc(t),dni!=null?dni+' dni':'','#d35400');})()}
+  ${kpi('tag','Nr referencyjny',esc(p.numer_ref||p.numer_ogloszenia||'—'),esc(p.tryb_zamowienia||''),'#0058be')}
+  ${(()=>{ // jw.: zero w projekcie a jest audyt → pokaż ryzyka z audytu
+    const a0=audytyAktualne[0];
+    if(Number(p.rozbieznosci)>0) return kpi('rule','Rozbieżności',p.rozbieznosci,'wykrytych','#dc2626');
+    if(a0&&a0.risks) return kpi('warning','Ryzyka (z audytu)',a0.risks,(a0.krit||0)+' krytycznych','#d35400');
+    return kpi('rule','Rozbieżności',0,'wykrytych','#dc2626');})()}
+ </div>
+ <div class="grid lg:grid-cols-2 gap-6">
+  <section class="bg-surface border border-outline-variant rounded-xl shadow-ambient p-5">
+   <h3 class="font-bold text-primary mb-3 flex items-center gap-2"><span class="material-symbols-outlined text-secondary">travel_explore</span>Portal zamówień + monitoring</h3>
+   ${url?`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 bg-secondary text-white px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 mb-4">
+     <span class="material-symbols-outlined text-[18px]">open_in_new</span>Otwórz na portalu zamówień</a>
+     <a href="${esc(url)}" target="_blank" rel="noopener noreferrer" class="block text-xs break-all mb-4 hover:underline" style="color:#0b61a1">${esc(url)}</a>`
+   :`<p class="text-sm text-on-surface-variant mb-4">Brak adresu postępowania — uzupełnij <b>url_postepowania</b>, a monitoring wystartuje automatycznie.</p>`}
+   ${m?`<div class="flex items-center gap-2 text-sm mb-3">
+     <span class="material-symbols-outlined text-[18px]" style="color:#16a34a">radar</span>
+     <span class="font-semibold" style="color:#16a34a">Monitoring aktywny</span>
+     ${m.last_checked?`<span class="text-xs text-on-surface-variant">· sprawdzono ${fmtDT(m.last_checked)}</span>`:''}
+     ${m.error_count?`<span class="pill" style="background:#ffdad6;color:#93000a">${m.error_count} błędów</span>`:''}</div>
+    ${zm.length?zm.slice(0,8).map(z=>{
+      const noweDok=z.diff&&z.diff.dodane_dokumenty&&z.diff.dodane_dokumenty.length;
+      const maUrls=noweDok&&z.diff.dodane_dokumenty_urls&&Object.keys(z.diff.dodane_dokumenty_urls).length;
+      // dostrojenie 2026-06-12: karta zmiany w języku frontendu (surface + pill),
+      // linie diffu jako osobne wiersze zamiast surowego bloku tekstu
+      return `<div class="rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2.5 mb-2">
+      <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+       <span class="pill bg-secondary/10 text-secondary text-[11px] tnum">${fmtDT(z.wykryto_at)}</span>
+       <span class="text-[11px] font-semibold uppercase tracking-wide text-on-surface-variant">zmiana na portalu</span>
+       ${z.powiadomiono?'<span class="pill bg-tertiary-container text-on-tertiary-container text-[10px]">🔔 powiadomiono</span>':''}</div>
+      <div>${renderZmianaLinie(z.opis_zmian)}</div>
+      ${noweDok?`<div class="flex items-center gap-2 mt-2 flex-wrap">
+        ${maUrls?`<button onclick="pobierzNowe(${id},${Number(z.id)},this)" class="bg-secondary text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:opacity-90">⬇ Pobierz do Drive</button>`:''}
+        ${audyty.length?`<button onclick="openUpdate('${esc(audyty[0].id)}')" class="bg-surface border border-outline-variant px-3 py-1.5 rounded-lg text-xs font-semibold hover:border-secondary">🔄 Aktualizuj audyt</button>`:''}
+      </div>`:''}</div>`;
+    }).join('')
+    :'<p class="text-sm text-on-surface-variant">Brak zmian od startu monitoringu — to co zamawiający opublikował wcześniej znajdziesz w liście poniżej. Sprawdzanie co 30 min.</p>'}
+    ${(mon&&mon.dokumenty_portal&&mon.dokumenty_portal.length)?(()=>{
+     // dostrojenie 2026-06-12: status per dokument — czy plik jest już w folderze
+     // Drive audytu; ostrzeżenie zanim ktoś odpali audyt bez kompletu
+     const dp=mon.dokumenty_portal, dv=(mon.drive||{});
+     const znane=dp.filter(d=>d.w_drive!==undefined);
+     const brak=dv.brakuje;
+     const naglowek=znane.length?` · <span class="${brak?'text-wsk-orange':''}" style="${brak?'':'color:#16a34a'}">${dp.length-brak}/${dp.length} w Drive</span>`:'';
+     return `
+    ${brak?`<div class="mt-3 rounded-lg border px-3 py-2 flex items-center gap-2 flex-wrap" style="background:#fff7ed;border-color:#fed7aa">
+      <span class="material-symbols-outlined text-[18px]" style="color:#c2410c">warning</span>
+      <span class="text-sm" style="color:#9a3412"><b>${brak}</b> dokument(ów) z portalu nie ma w folderze audytu — <b>nie aktualizuj audytu</b> przed pobraniem.</span>
+      <button onclick="pobierzBrakujace(${id},this)" class="bg-secondary text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:opacity-90">⬇ Pobierz brakujące (${brak})</button>
+      ${dv.folder_url?`<a href="${esc(dv.folder_url)}" target="_blank" class="text-xs hover:underline" style="color:#0b61a1">folder Drive ↗</a>`:''}</div>`
+     :(znane.length?`<div class="mt-3 text-sm flex items-center gap-1.5" style="color:#16a34a"><span class="material-symbols-outlined text-[18px]">check_circle</span>Komplet dokumentów portalu w folderze audytu${dv.folder_url?` · <a href="${esc(dv.folder_url)}" target="_blank" class="hover:underline" style="color:#0b61a1">otwórz ↗</a>`:''}</div>`:'')}
+    <details class="mt-3 border-t border-outline-variant pt-2" ${brak?'open':''}>
+     <summary class="cursor-pointer text-sm font-semibold text-primary flex items-center gap-1.5">
+      <span class="material-symbols-outlined text-[18px] text-secondary">folder_open</span>
+      Dokumenty na portalu (${dp.length})${naglowek}</summary>
+     <div class="mt-2 divide-y divide-outline-variant max-h-[300px] overflow-y-auto">
+      ${dp.map(d=>{
+        const stan=d.w_drive===undefined?'':(d.w_drive
+          ?'<span class="pill text-[10px]" style="background:#c7f3dc;color:#00391f" title="plik jest w folderze Drive audytu">✓ w Drive</span>'
+          :'<span class="pill text-[10px]" style="background:#ffedd5;color:#9a3412" title="pliku nie ma w folderze Drive audytu">brak w Drive</span>');
+        const naz=`<span class="min-w-0 break-words flex-1">${esc(d.nazwa)}</span>`;
+        return d.url
+        ?`<a href="${esc(d.url)}" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 py-1.5 text-sm hover:underline" style="color:#0b61a1"><span class="material-symbols-outlined text-[16px] text-on-surface-variant">draft</span>${naz}${stan}</a>`
+        :`<p class="flex items-center gap-2 py-1.5 text-sm text-on-surface"><span class="material-symbols-outlined text-[16px] text-on-surface-variant">draft</span>${naz}${stan}</p>`;}).join('')}
+     </div></details>`;})():''}`
+   :(url?'<p class="text-sm text-on-surface-variant">Monitoring wystartuje przy najbliższym cyklu (max 30 min).</p>':'')}
+  </section>
+  <section class="bg-surface border border-outline-variant rounded-xl shadow-ambient p-5">
+   ${(()=>{ // dostrojenie 2026-06-12 (pomysł Pawła): sekcja Dokumenty = podgląd
+     // realnego folderu Drive audytu; pliki systemowe jako zwijany dodatek
+     const drv=(audytyAktualne[0]&&DRV&&!DRV.error)?DRV:null;
+     const ikona=n=>/\.pdf$/i.test(n)?'picture_as_pdf':/\.(xlsx?|csv)$/i.test(n)?'table_view':/\.(zip|rar|7z)$/i.test(n)?'folder_zip':/\.(jpe?g|png|gif)$/i.test(n)?'image':/\.(docx?|rtf)$/i.test(n)?'description':/\.(rdsx|ath|rds)$/i.test(n)?'request_quote':'draft';
+     const rozm=s=>s==null?'':(s>1048576?(s/1048576).toFixed(1)+' MB':Math.max(1,Math.round(s/1024))+' KB');
+     const plik=f=>`<a href="${esc(f.url)}" target="_blank" rel="noopener" class="flex items-center gap-2 py-1 text-sm hover:underline" style="color:#0b61a1">
+       <span class="material-symbols-outlined text-[16px] text-on-surface-variant">${ikona(f.name)}</span>
+       <span class="min-w-0 break-words flex-1">${esc(f.name)}</span><span class="text-[10px] text-on-surface-variant tnum whitespace-nowrap">${rozm(f.size)}</span></a>`;
+     const systemowe=dok.length?dok.map(d=>`
+      <a href="/api/przetargi/${id}/dokumenty/${Number(d.id)}/podglad?token=${encodeURIComponent(TOKEN)}" target="_blank" rel="noopener" class="flex items-center gap-3 py-2 hover:bg-surface-container-low rounded-lg px-1 -mx-1 transition group">
+       <span class="material-symbols-outlined text-on-surface-variant">draft</span>
+       <div class="flex-1 min-w-0"><p class="text-sm text-on-surface truncate group-hover:text-secondary">${esc(d.nazwa_pliku||d.name||'plik')}</p>
+        <p class="text-[11px] text-on-surface-variant">${esc(d.kategoria||'')}${d.rozmiar_bytes?' · '+Math.round(d.rozmiar_bytes/1024)+' KB':''}</p></div>
+       <span class="material-symbols-outlined text-[16px] text-on-surface-variant opacity-0 group-hover:opacity-100">open_in_new</span></a>`).join('')
+      :'<p class="text-sm text-on-surface-variant">Brak dokumentów w systemie.</p>';
+     if(!drv) return `<h3 class="font-bold text-primary mb-3 flex items-center gap-2"><span class="material-symbols-outlined text-secondary">folder_open</span>Dokumenty (${dok.length})</h3>
+      <div class="divide-y divide-outline-variant max-h-[420px] overflow-y-auto">${systemowe}</div>`;
+     const nPlikow=(drv.pliki||[]).length+(drv.foldery||[]).reduce((s,f)=>s+f.pliki.length,0);
+     return `<h3 class="font-bold text-primary mb-3 flex items-center gap-2"><span class="material-symbols-outlined text-secondary">folder_open</span>Folder audytu na Drive (${nPlikow})
+      <a href="${esc(drv.folder_url)}" target="_blank" rel="noopener" class="ml-auto text-xs font-normal hover:underline" style="color:#0b61a1">otwórz w Drive ↗</a></h3>
+     <div class="max-h-[420px] overflow-y-auto pr-1">
+      ${(drv.pliki||[]).map(plik).join('')}
+      ${(drv.foldery||[]).map(f=>`<details class="mt-1"><summary class="cursor-pointer flex items-center gap-2 py-1 text-sm font-semibold text-on-surface hover:text-secondary">
+        <span class="material-symbols-outlined text-[18px]" style="color:#eab308">folder</span>${esc(f.name)}
+        <span class="text-[10px] font-normal text-on-surface-variant">${f.pliki.length} plik(ów)${f.podfoldery?' + '+f.podfoldery+' podfolder(ów)':''}</span></summary>
+        <div class="pl-7">${f.pliki.map(plik).join('')||''}
+        ${f.podfoldery?`<a href="${esc(f.url)}" target="_blank" class="block text-[11px] py-1 hover:underline" style="color:#0b61a1">…podfoldery — otwórz w Drive ↗</a>`:''}</div></details>`).join('')}
+     </div>
+     ${dok.length?`<details class="mt-3 border-t border-outline-variant pt-2"><summary class="cursor-pointer text-xs font-semibold text-on-surface-variant">Pliki w systemie platformy (${dok.length})</summary>
+      <div class="divide-y divide-outline-variant">${systemowe}</div></details>`:''}`;})()}
+   ${p.opis?`<div class="mt-4 pt-3 border-t border-outline-variant"><p class="text-[11px] uppercase tracking-wide text-on-surface-variant font-semibold mb-1">Opis</p>
+    <p class="text-sm text-on-surface whitespace-pre-line">${esc(p.opis)}</p></div>`:''}
+  </section>
+ </div>
+ ${(()=>{ // sekcja Otwarcie ofert (2026-06-11): kwota zamawiającego + lista firm z cen
+  const oferty=OTW.oferty||[];
+  const maDane=!!(OTW.kwota_przeznaczona_brutto||OTW.kwota_przeznaczona_netto||oferty.length);
+  const otwDok=((mon&&mon.dokumenty_portal)||[]).filter(d=>/otwarci\w*[\s_-]*ofert|kwo\w*[\s_-]*przeznaczon|przeznaczy\w*\s+na\s+sfinansowanie/i.test(d.nazwa||''));
+  const innaP=!!(mon&&mon.prowadzone_na_platformie===false); // ezamowienia tylko rejestruje, prowadzone gdzie indziej
+  if(!maDane&&!otwDok.length&&!innaP) return '';
+  const kw=OTW.kwota_przeznaczona_brutto, kwN=OTW.kwota_przeznaczona_netto;
+  const fmtZl=v=>v==null?'—':Number(v).toLocaleString('pl-PL',{minimumFractionDigits:2,maximumFractionDigits:2})+' zł';
+  const sorted=[...oferty].sort((a,b)=>((a.cena_brutto??a.cena_netto)??9e18)-((b.cena_brutto??b.cena_netto)??9e18));
+  const a0=audytyAktualne[0];
+  return `<section class="bg-surface border border-outline-variant rounded-xl shadow-ambient p-5 mt-6">
+   <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+    <h3 class="font-bold text-primary flex items-center gap-2"><span class="material-symbols-outlined text-secondary">gavel</span>Otwarcie ofert</h3>
+    <button onclick="parseOtwarcie(${id},this)" class="bg-surface border border-outline-variant px-3 py-1.5 rounded-lg text-xs font-semibold hover:border-secondary">${maDane?'🔄 Odśwież z portalu':'🔍 Odczytaj z dokumentów portalu'}</button>
+   </div>
+   ${innaP?`<div class="mb-4 p-3 rounded-lg" style="background:#fff7ed;border:1px solid #fed7aa">
+    <p class="text-sm font-semibold" style="color:#9a3412"><span class="material-symbols-outlined text-[18px] align-middle">swap_horiz</span> Prowadzone na innej platformie</p>
+    <p class="text-xs text-on-surface-variant mt-1">Ten przetarg jest tylko <b>zarejestrowany</b> na e-Zamówieniach — dokumenty i oferty zamawiający publikuje na <b>innej platformie</b>${mon.ref_postepowania?` (sygn. ${esc(mon.ref_postepowania)})`:''}. Wklej link do właściwej platformy, a odczytam stamtąd kwotę i oferty:</p>
+    <div class="flex gap-2 mt-2 flex-wrap">
+     <input id="repointUrl" placeholder="https://platformazakupowa.pl/transakcja/… albo …ezamawiajacy.pl/…" class="flex-1 min-w-[240px] border border-outline-variant rounded-lg p-2 text-sm bg-surface">
+     <button onclick="repointOtwarcie(${id},this)" class="bg-secondary text-white px-3 py-2 rounded-lg text-sm font-semibold hover:opacity-90 whitespace-nowrap">Dodaj link i odczytaj</button>
+    </div></div>`:''}
+   ${maDane?`
+   <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+    ${kpi('account_balance','Kwota zamawiającego',kw?fmtZl(kw):(kwN?fmtZl(kwN):'—'),kw?'brutto':(kwN?'netto':''),'#0f7a4d')}
+    ${kpi('groups','Złożone oferty',oferty.length,OTW.data_otwarcia?('otwarcie '+OTW.data_otwarcia):'','#0058be')}
+    ${sorted.length&&(sorted[0].cena_brutto||sorted[0].cena_netto)?kpi('trending_down','Najtańsza oferta',fmtZl(sorted[0].cena_brutto||sorted[0].cena_netto),esc(String(sorted[0].wykonawca||'').slice(0,40)),'#d35400'):''}
+   </div>
+   ${sorted.length?`<div class="overflow-x-auto"><table class="dtable w-full text-sm text-left">
+    <thead><tr class="text-[11px] uppercase tracking-wide text-on-surface-variant"><th class="p-2 font-semibold">#</th><th class="p-2 font-semibold">Wykonawca</th><th class="p-2 font-semibold text-right">Cena brutto</th><th class="p-2 font-semibold text-right">Cena netto</th><th class="p-2 font-semibold">Uwagi</th><th class="p-2 font-semibold text-right">vs kwota zamaw.</th></tr></thead>
+    <tbody>${sorted.map((o,i)=>{
+      const c=o.cena_brutto, dPct=(kw&&c)?((c-kw)/kw*100):null;
+      return `<tr class="${i===0?'font-semibold':''}">
+       <td class="p-2 tnum">${i+1}</td>
+       <td class="p-2">${esc(o.wykonawca||'—')}${o.miejscowosc?` <span class="text-xs text-on-surface-variant">(${esc(o.miejscowosc)})</span>`:''}${i===0?' <span class="pill" style="background:#c7f3dc;color:#00391f">najtańsza</span>':''}</td>
+       <td class="p-2 text-right tnum">${fmtZl(o.cena_brutto)}</td>
+       <td class="p-2 text-right tnum">${fmtZl(o.cena_netto)}</td>
+       <td class="p-2 text-xs text-on-surface-variant">${esc(o.uwagi||'')}</td>
+       <td class="p-2 text-right tnum">${dPct==null?'—':`<span style="color:${dPct<=0?'#0f7a4d':'#93000a'}">${dPct>0?'+':''}${dPct.toFixed(1)}%</span>`}</td></tr>`;
+    }).join('')}</tbody></table></div>`
+   :'<p class="text-sm text-on-surface-variant">Zamawiający podał na razie kwotę przeznaczoną — lista ofert pojawi się po otwarciu i kolejnym odczycie.</p>'}
+   ${OTW.podsumowanie?`<p class="text-sm text-on-surface mt-3 pt-3 border-t border-outline-variant">📝 ${esc(OTW.podsumowanie)}</p>`:''}
+   ${a0&&(a0.netto_od||a0.netto_do)?`<p class="text-xs text-on-surface-variant mt-1">Nasz szacunek z audytu: ${fmtMln(a0.netto_od||a0.netto_do)}${a0.netto_do&&a0.netto_od?' – '+fmtMln(a0.netto_do):''} netto.</p>`:''}
+   ${OTW.updated_at?`<p class="text-[11px] text-on-surface-variant mt-1">Odczytano ${fmtDT(OTW.updated_at)} z: ${esc((OTW.zrodla||[]).join(', '))}</p>`:''}`
+   :(otwDok.length?`<p class="text-sm text-on-surface-variant">Na portalu są dokumenty otwarcia: <b>${otwDok.map(d=>esc(d.nazwa)).join('</b>, <b>')}</b> — kliknij „Odczytaj", a AI wyciągnie kwotę zamawiającego i listę firm z cenami.</p>`:'')}
+  </section>`;})()}
+ <section class="bg-surface border border-outline-variant rounded-xl shadow-ambient p-5 mt-6">
+  <h3 class="font-bold text-primary mb-3 flex items-center gap-2"><span class="material-symbols-outlined text-secondary">fact_check</span>Audyty przetargowe (${audytyAktualne.length})</h3>
+  ${(()=>{const wiersz=(a,aktualny)=>{
+    const sv=a.sev||{};const score=Math.min(96,(sv['KRYTYCZNA']||0)*24+(sv['WYSOKA']||0)*12+((sv['SREDNIA']||sv['ŚREDNIA'])||0)*5+(sv['NISKA']||0)*1);
+    const sc=score>=60?['#ffdad6','#93000a']:score>=35?['#fde68a','#92400e']:['#c7f3dc','#00391f'];
+    return `<div onclick="go('analiza','${esc(a.id)}')" class="flex items-center gap-3 py-2.5 cursor-pointer hover:bg-surface-container-low rounded-lg px-2 transition ${aktualny?'':'opacity-60'}">
+     <span class="inline-flex items-center justify-center w-9 h-9 rounded-full text-xs font-bold tnum shrink-0" style="background:${sc[0]};color:${sc[1]}">${score}</span>
+     <div class="flex-1 min-w-0"><p class="text-sm font-medium text-primary truncate">${esc(a.project)}</p>
+      <p class="text-[11px] text-on-surface-variant">${esc(a.id)} · ${a.mat_count} materiałów · ${a.risks} ryzyk · ${new Date((a.mtime||0)*1000).toLocaleDateString('pl-PL')}</p></div>
+     ${aktualny?'<span class="pill" style="background:#c7f3dc;color:#00391f">AKTUALNY</span>':'<span class="pill" style="background:#eceef0;color:#64748b">starsza wersja</span>'}
+     ${a.ma_folder===false?'<span class="pill" style="background:#ffdad6;color:#93000a" title="Bez folderu nie zadziała Pobierz do Drive ani Aktualizuj audyt — wejdź w audyt i podepnij folder">⚠ podepnij folder</span>':''}
+     <span class="pill ${a.bid?'bg-tertiary-container text-on-tertiary-container':'bg-error-container text-on-error-container'}">${a.bid?'Składać':'Decyzja'}</span>
+     <span class="material-symbols-outlined text-on-surface-variant">chevron_right</span></div>`;};
+   if(!audyty.length) return `<p class="text-sm text-on-surface-variant">Brak powiązanego audytu — wklej poniżej folder Drive z dokumentacją i uruchom audyt, albo powiąż istniejący (wejdź w audyt → pole „Powiązane postępowanie").</p>`;
+   let h='<div class="divide-y divide-outline-variant">'+audytyAktualne.map(a=>wiersz(a,true)).join('')+'</div>';
+   if(audytyStare.length) h+=`<details class="mt-2"><summary class="cursor-pointer text-xs text-on-surface-variant hover:text-secondary">Starsze wersje (${audytyStare.length})</summary>
+     <div class="divide-y divide-outline-variant mt-1">${audytyStare.map(a=>wiersz(a,false)).join('')}</div></details>`;
+   return h;})()}
+  <div class="mt-4 pt-4 border-t border-outline-variant">
+   <div class="flex gap-2 flex-wrap items-center">
+    <input id="audytUrl" placeholder="Wklej link do folderu Google Drive z dokumentacją postępowania…" class="flex-1 min-w-[260px] border border-outline-variant rounded-lg p-2.5 text-sm bg-surface">
+    <button onclick="startAudytPostepowania(${id})" class="bg-secondary text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:opacity-90 flex items-center gap-1.5">
+     <span class="material-symbols-outlined text-[18px]">play_arrow</span>${audyty.length?'Nowy audyt':'Uruchom audyt'}</button>
+   </div>
+   <p class="text-[11px] text-on-surface-variant mt-1.5">Agent przeczyta dokumenty z folderu (SWZ, projekt, przedmiar…), zrobi pełny audyt i sam powiąże go z tym postępowaniem. ~kilkanaście minut.</p>
+  </div>
+ </section>
+ <section class="bg-surface border border-outline-variant rounded-xl shadow-ambient p-5 mt-6">
+  <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+   <h3 class="font-bold text-primary flex items-center gap-2"><span class="material-symbols-outlined text-secondary">handshake</span>Kim startujemy w tym postępowaniu</h3>
+   <a onclick="go('firmy')" class="text-xs text-secondary cursor-pointer hover:underline">Kartoteka firm →</a></div>
+  <div class="flex gap-2 mb-3 flex-wrap">
+   ${[['samodzielnie','Samodzielnie (WSK)'],['konsorcjum','Konsorcjum'],['z_podwykonawca','Z podwykonawcą'],['inna_firma','Inna firma']].map(([k,v])=>
+    `<button onclick="ofkTryb='${k}';ofkRender()" data-tryb="${k}" class="ofk-tryb pill px-3 py-1.5 text-xs font-semibold cursor-pointer ${OFK.tryb===k?'bg-secondary text-white':'bg-surface border border-outline-variant text-on-surface-variant hover:border-secondary'}">${v}</button>`).join('')}
+  </div>
+  <div id="ofkSklad" class="space-y-1.5 mb-3"></div>
+  <div class="flex gap-2 items-center flex-wrap">
+   <input id="ofkNotatki" value="${esc(OFK.notatki||'')}" placeholder="Notatka (np. podział zakresu w konsorcjum)…" class="flex-1 min-w-[240px] border border-outline-variant rounded-lg p-2 text-sm bg-surface">
+   <button onclick="ofkZapisz(${id})" class="bg-secondary text-white px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 inline-flex items-center gap-1.5"><span class="material-symbols-outlined text-[18px]">save</span>Zapisz konfigurację</button>
+   ${OFK.tryb?`<button onclick="paczkaStart(${id},this)" class="bg-tertiary text-white px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 inline-flex items-center gap-1.5"><span class="material-symbols-outlined text-[18px]">package_2</span>Przygotuj paczkę ofertową</button>`:''}
+   ${OFK.tryb?`<span class="text-xs text-on-surface-variant">zapisano: ${esc(OFK.tryb)}, ${(OFK.sklad||[]).length} podmiot(y)</span>`:'<span class="text-xs" style="color:#92400e">jeszcze nie oznaczono — zapisz, a pojawi się przycisk paczki</span>'}
+  </div>
+ </section>`;
+ window.ofkTryb=OFK.tryb||'samodzielnie';
+ window.ofkFirmy=FIRMY; window.ofkAktualny=OFK;
+ ofkRender();
+};
+function ofkRender(){
+ document.querySelectorAll('.ofk-tryb').forEach(b=>{
+  const akt=b.dataset.tryb===window.ofkTryb;
+  b.className='ofk-tryb pill px-3 py-1.5 text-xs font-semibold cursor-pointer '+(akt?'bg-secondary text-white':'bg-surface border border-outline-variant text-on-surface-variant hover:border-secondary');});
+ const box=document.getElementById('ofkSklad'); if(!box)return;
+ const sklad=window.ofkAktualny&&window.ofkAktualny.sklad||[];
+ const role=window.ofkTryb==='konsorcjum'?['lider','partner']:window.ofkTryb==='z_podwykonawca'?['oferent','podwykonawca']:['oferent'];
+ box.innerHTML=(window.ofkFirmy||[]).map(f=>{
+  const w=sklad.find(s=>Number(s.firma_id)===Number(f.id));
+  return `<div class="flex items-center gap-2 text-sm">
+   <input type="checkbox" data-fid="${Number(f.id)}" ${w?'checked':''} class="ofk-chk rounded border-outline-variant text-secondary">
+   <span class="flex-1">${esc(f.nazwa)} <span class="text-xs text-on-surface-variant">(${esc(ROLA_LABEL[f.rola_domyslna]||'')})</span></span>
+   <select data-fid="${Number(f.id)}" class="ofk-rola border border-outline-variant rounded-lg p-1 text-xs bg-surface">
+    ${role.map(r=>`<option value="${r}" ${w&&w.rola===r?'selected':''}>${r}</option>`).join('')}</select></div>`;
+ }).join('')||'<p class="text-xs text-on-surface-variant">Brak firm w kartotece — <a onclick="go(\'firma\',\'nowa\')" class="text-secondary cursor-pointer hover:underline">dodaj pierwszą</a>.</p>';
+}
+async function paczkaStart(pid,btn){
+ if(!confirm('Agent przeczyta SWZ i załączniki z folderu audytu, wypełni dokumenty danymi firm z konfiguracji „Kim startujemy" i wgra paczkę do podfolderu PACZKA_OFERTOWA na Drive.\n\nPola typu CENA zostaną oznaczone [DO UZUPEŁNIENIA]. Start? (~kilkanaście minut)'))return;
+ let m=document.getElementById('updModal'); if(!m){m=document.createElement('div');m.id='updModal';document.body.appendChild(m);}
+ m.className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4';
+ m.innerHTML=`<div class="bg-surface rounded-2xl shadow-xl w-full max-w-lg p-6">
+   <div class="flex items-center justify-between mb-3"><h3 class="font-bold text-primary text-lg">Paczka ofertowa — postępowanie #${pid}</h3>
+    <button onclick="document.getElementById('updModal').remove()" class="text-on-surface-variant hover:text-error"><span class="material-symbols-outlined">close</span></button></div>
+   <div class="flex items-center justify-between mb-1"><span id="u-stage" class="text-sm text-on-surface-variant">Start…</span><span id="u-pct" class="text-lg font-extrabold text-secondary">0%</span></div>
+   <div class="w-full bg-surface-container rounded-full h-2 mb-3"><div id="u-bar" class="h-2 rounded-full bg-secondary transition-all" style="width:0%"></div></div>
+   <div id="u-log" class="bg-[#0d1b2a] text-slate-200 rounded-lg p-3 text-xs font-mono h-56 overflow-auto"></div>
+   <div id="u-foot" class="mt-3 hidden"></div></div>`;
+ let r;
+ try{ r=await (await fetch(API+'/paczka',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({projekt_id:pid})})).json(); }
+ catch(e){ uLog('ERR\tBłąd startu: '+e.message); return; }
+ if(r.error){ uLog('ERR\t'+(r.hint||r.error));
+  if(r.error==='no_source'&&r.audit_id){ if(confirm((r.hint||'')+'\nPrzejść do audytu, żeby podpiąć folder?')){document.getElementById('updModal').remove();go('analiza',r.audit_id);} }
+  return; }
+ const ES=new EventSource(API+'/progress/'+r.job_id+'?token='+encodeURIComponent(TOKEN));
+ let nlog=0;
+ const upd=s=>{ const pe=document.getElementById('u-pct'); if(!pe)return; pe.textContent=(s.pct||0)+'%'; document.getElementById('u-bar').style.width=(s.pct||0)+'%'; if(s.stage)document.getElementById('u-stage').textContent=s.stage; const lg=s.log||[]; for(let i=nlog;i<lg.length;i++) uLog(lg[i].m); nlog=lg.length; };
+ ES.onmessage=ev=>upd(JSON.parse(ev.data));
+ ES.addEventListener('done',ev=>{ const s=JSON.parse(ev.data); upd(s); ES.close();
+  const f=document.getElementById('u-foot'); if(f){f.classList.remove('hidden');
+   f.innerHTML=s.ok?`<div class="text-sm" style="color:#0f7a4d"><b>Paczka gotowa.</b> Pliki są w podfolderze <b>PACZKA_OFERTOWA</b> folderu Drive postępowania — zacznij od CHECKLISTA_OFERTY.</div>`
+   :'<div class="text-sm text-error">Zakończono z błędem — sprawdź log powyżej.</div>';}});
+ ES.addEventListener('error',()=>uLog('INFO\tPodgląd chwilowo przerwany — odnawiam połączenie (job działa dalej w tle).'));
+}
+async function parseOtwarcie(pid,btn){
+ btn.disabled=true; const t=btn.textContent; btn.textContent='⏳ AI czyta dokumenty…';
+ try{
+  const r=await (await fetch('/api/przetargi/'+pid+'/otwarcie/parse',{method:'POST'})).json();
+  if(r.error||r.detail){ alert(r.hint||r.error||r.detail); btn.disabled=false; btn.textContent=t; return; }
+  // dostrojenie 2026-06-11: sukces bez danych = powiedz to wprost (wcześniej
+  // cichy re-render wyglądał jak "nic się nie dzieje")
+  if(!(r.oferty&&r.oferty.length)&&!r.kwota_przeznaczona_brutto&&!r.kwota_przeznaczona_netto){
+   alert('Dokumenty odczytane, ale AI nie znalazło w nich kwoty ani ofert.\nMonitor ponowi odczyt automatycznie (co ~90 min).');
+  }
+  go('postepowanie',pid); // re-render z nowymi danymi
+ }catch(e){ alert('Błąd odczytu: '+e.message); btn.disabled=false; btn.textContent=t; }
+}
+async function repointOtwarcie(pid,btn){
+ const inp=document.getElementById('repointUrl'); const url=((inp&&inp.value)||'').trim();
+ if(!url){alert('Wklej link do właściwej platformy.');return;}
+ btn.disabled=true; const t=btn.textContent; btn.textContent='⏳ Pobieram i czytam…';
+ try{
+  const r=await (await fetch('/api/przetargi/'+pid+'/otwarcie/repoint',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url})})).json();
+  if(r.error||r.detail){ alert(r.hint||r.error||r.detail); btn.disabled=false; btn.textContent=t; return; }
+  if(!(r.oferty&&r.oferty.length)&&!r.kwota_przeznaczona_brutto&&!r.kwota_przeznaczona_netto){
+   alert('Link zapisany. Dokumenty odczytane, ale nie ma jeszcze kwoty/ofert — monitor ponowi automatycznie (co ~90 min).');
+  }
+  go('postepowanie',pid);
+ }catch(e){ alert('Błąd: '+e.message); btn.disabled=false; btn.textContent=t; }
+}
+async function ofkZapisz(pid){
+ const sklad=[...document.querySelectorAll('.ofk-chk:checked')].map(c=>{
+  const fid=Number(c.dataset.fid);
+  const sel=document.querySelector('.ofk-rola[data-fid="'+fid+'"]');
+  return {firma_id:fid, rola:sel?sel.value:'oferent'};});
+ if(!sklad.length){alert('Zaznacz przynajmniej jeden podmiot.');return;}
+ const notatki=(document.getElementById('ofkNotatki')||{}).value||'';
+ try{
+  const r=await (await fetch('/api/przetargi/'+pid+'/oferta-konfig',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tryb:window.ofkTryb,sklad,notatki})})).json();
+  if(r.ok) go('postepowanie',pid); else alert(r.error||'Błąd zapisu.');
+ }catch(e){alert('Błąd sieci: '+e.message);}
+}
+
+// ================= RADAR BZP (nowe ogłoszenia)
+let RADAR_DATA=[];
+const RADAR_STOP=new Set(['budowa','budowy','budynek','budynku','obiektow','uzytecznosci','publicznej','przy','oraz','roboty','robotami','towarzyszacymi','remont','modernizacja','wykonanie','wykonania','przebudowa','drogi','dojazdowej']);
+function radarTokeny(s){return new Set(String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9 ]/g,' ').split(/\s+/).filter(x=>x.length>=5&&!RADAR_STOP.has(x)).map(x=>x.slice(0,7)));}
+function radarNumer(s){return String(s||'').replace(/[^0-9]/g,'');}
+function radarDopasujProjekt(o,projekty){
+ if(o.projekt_id){const p=projekty.find(x=>Number(x.id)===Number(o.projekt_id));if(p)return p;}
+ const nr=radarNumer(o.bzp_number||o.notice_number);
+ if(nr){const p=projekty.find(x=>radarNumer(x.numer_ogloszenia)===nr);if(p)return p;}
+ const ot=radarTokeny(o.order_object), miasto=radarTokeny(o.city), organizacja=radarTokeny((o.organization||'')+' '+(o.city||'')), kandydaci=[];
+ for(const p of projekty){
+  const pt=radarTokeny(p.nazwa), geo=radarTokeny((p.nazwa||'')+' '+lokPrz(p)+' '+(p.zamawiajacy||''));
+  if(miasto.size&&![...miasto].some(x=>geo.has(x)))continue;
+  const otZakres=[...ot].filter(x=>!organizacja.has(x)), ptZakres=[...pt].filter(x=>!organizacja.has(x));
+  const wsp=otZakres.filter(x=>pt.has(x)).length, pokrycie=wsp/Math.max(1,Math.min(otZakres.length,ptZakres.length));
+  if(wsp>=3&&pokrycie>=0.7)kandydaci.push({p,wsp,pokrycie});
+ }
+ kandydaci.sort((a,b)=>b.wsp-a.wsp||b.pokrycie-a.pokrycie);
+ return kandydaci.length&&(!kandydaci[1]||kandydaci[0].wsp>kandydaci[1].wsp||kandydaci[0].pokrycie>kandydaci[1].pokrycie)?kandydaci[0].p:null;
+}
+function radarTermin(o){return (o._projekt&&o._projekt.termin_skladania)||o.submitting_date||'';}
+function radarData(s){const x=String(s||'');let m=x.match(/^(\d{2})\.(\d{2})\.(\d{4})/);if(m)return new Date(Number(m[3]),Number(m[2])-1,Number(m[1]));m=x.match(/^(\d{4})-(\d{2})-(\d{2})/);return m?new Date(Number(m[1]),Number(m[2])-1,Number(m[3])):null;}
+function radarTerminTekst(o){const s=radarTermin(o);if(!s)return '—';if(/^\d{4}-\d{2}-\d{2}T/.test(s)){const d=new Date(s);return d.toLocaleString('pl-PL',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});}return s;}
+VIEWS.radar=async(app)=>{
+ const [radar,projekty]=await Promise.all([jget('/api/radar/lista'),jget('/api/przetargi')]);
+ RADAR_DATA=(radar||[]).map(o=>{const p=radarDopasujProjekt(o,projekty||[]);return {...o,_projekt:p,projekt_id:o.projekt_id||(p&&p.id)||null};});
+ const arr=RADAR_DATA;
+ app.innerHTML=`
+ <div class="mb-6 flex items-end justify-between gap-3 flex-wrap"><div>
+  <p class="text-sm text-secondary font-semibold uppercase tracking-wider">Radar BZP</p>
+  <h2 class="text-3xl font-extrabold text-primary">Nowe ogłoszenia o zamówieniach</h2>
+  <p class="text-on-surface-variant">Roboty budowlane · woj. zachodniopomorskie · skan co 6 h z oficjalnego API BZP.</p></div>
+  <button onclick="radarSkanuj(this)" class="bg-secondary text-white px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 flex items-center gap-1.5">
+   <span class="material-symbols-outlined text-[18px]">refresh</span>Skanuj teraz</button></div>
+ <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  ${kpi('radar','Nowe (do przejrzenia)',arr.filter(o=>o.status==='nowy'&&(!radarData(radarTermin(o))||radarData(radarTermin(o))>=new Date(new Date().setHours(0,0,0,0)))).length,'aktywne · czekają na decyzję','#0058be')}
+  ${kpi('visibility','Obserwowane',arr.filter(o=>o.status==='obserwowane').length,'na oku','#d35400')}
+  ${kpi('add_task','Dodane do przetargów',arr.filter(o=>o.status==='dodane').length,'w platformie','#16a34a')}
+  ${kpi('block','Odrzucone',arr.filter(o=>o.status==='odrzucone').length,'nie dla nas','#64748b')}
+ </div>
+ <div class="flex flex-col xl:flex-row gap-6">
+  <aside class="w-full xl:w-64 shrink-0 bg-surface border border-outline-variant rounded-xl p-5 shadow-ambient h-fit">
+   <div class="flex justify-between items-center mb-4"><h3 class="font-bold text-primary">Filtry</h3>
+    <button onclick="radarWyczyscFiltry()" class="text-xs text-secondary hover:underline">Wyczyść</button></div>
+   <label class="block text-xs font-semibold text-on-surface-variant mb-1">Szukaj</label>
+   <input id="rf-q" oninput="renderRadar()" placeholder="nazwa / zamawiający / miasto" class="w-full border border-outline-variant rounded-lg p-2 text-sm mb-4 bg-surface">
+   <label class="block text-xs font-semibold text-on-surface-variant mb-1">Status</label>
+   <select id="rf-status" onchange="renderRadar()" class="w-full border border-outline-variant rounded-lg p-2 text-sm mb-4 bg-surface">
+    <option value="aktywne">Aktywne (nowe + obserwowane)</option>
+    <option value="nowy">Tylko nowe</option>
+    <option value="obserwowane">Obserwowane</option>
+    <option value="dodane">Dodane do przetargów</option>
+    <option value="wygasle">Po terminie</option>
+    <option value="odrzucone">Odrzucone</option>
+    <option value="">Wszystkie</option></select>
+   <label class="block text-xs font-semibold text-on-surface-variant mb-1">Sortowanie</label>
+   <select id="rf-sort" onchange="renderRadar()" class="w-full border border-outline-variant rounded-lg p-2 text-sm mb-4 bg-surface">
+    <option value="termin">Termin składania (najbliżej)</option>
+    <option value="publikacja">Publikacja (najnowsze)</option></select>
+   <label class="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" id="rf-7dni" onchange="renderRadar()" class="rounded border-outline-variant text-secondary">Min. 7 dni do terminu</label>
+  </aside>
+  <section class="flex-1 bg-surface border border-outline-variant rounded-xl shadow-ambient overflow-hidden">
+   <div class="p-5 border-b border-outline-variant"><h3 class="font-bold text-primary">Znalezione ogłoszenia</h3>
+    <p id="rf-count" class="text-sm text-on-surface-variant"></p></div>
+   <div class="overflow-x-auto"><table class="dtable w-full text-sm text-left">
+    <thead><tr class="text-[11px] uppercase tracking-wide text-on-surface-variant">
+     <th class="p-3 font-semibold">Ogłoszenie</th><th class="p-3 font-semibold">Zamawiający</th><th class="p-3 font-semibold">Termin składania</th><th class="p-3 font-semibold">Status</th><th class="p-3 font-semibold text-right">Akcje</th></tr></thead>
+    <tbody id="rf-rows"></tbody></table></div></section></div>`;
+ renderRadar();
+};
+function radarWyczyscFiltry(){$('#rf-q').value='';$('#rf-status').value='aktywne';$('#rf-sort').value='termin';$('#rf-7dni').checked=false;renderRadar();}
+function renderRadar(){
+ const rowsEl=document.getElementById('rf-rows'); if(!rowsEl)return;
+ const dzis=new Date(); dzis.setHours(0,0,0,0);
+ const dniDo=s=>{const d=radarData(s);return d?Math.round((d-dzis)/86400000):null;};
+ const q=($('#rf-q')?.value||'').toLowerCase();
+ const st=$('#rf-status')?.value??'aktywne';
+ let list=RADAR_DATA.filter(o=>{const d=dniDo(radarTermin(o));if(st==='wygasle')return d!=null&&d<0;if(st==='aktywne')return (o.status==='nowy'||o.status==='obserwowane')&&(d==null||d>=0);return st===''?true:o.status===st;});
+ if(q) list=list.filter(o=>((o.order_object||'')+' '+(o.organization||'')+' '+(o.city||'')).toLowerCase().includes(q));
+ if($('#rf-7dni')?.checked) list=list.filter(o=>{const d=dniDo(radarTermin(o));return d!=null&&d>=7;});
+ if(($('#rf-sort')?.value||'termin')==='termin') list.sort((a,b)=>{const da=dniDo(radarTermin(a)),db=dniDo(radarTermin(b));return (da==null?1e6:da<0?5e5-da:da)-(db==null?1e6:db<0?5e5-db:db);});
+ else list.sort((a,b)=>(b.publication_date||'').localeCompare(a.publication_date||''));
+ const ce=document.getElementById('rf-count'); if(ce)ce.textContent='Wyświetlanie '+list.length+' z '+RADAR_DATA.length+' ogłoszeń';
+ rowsEl.innerHTML=list.map(o=>{
+  const termin=radarTermin(o), dni=dniDo(termin), wygasl=dni!=null&&dni<0;
+  const terminZmieniony=!!(o._projekt&&o._projekt.termin_skladania&&String(o._projekt.termin_skladania).slice(0,10)!==String(o.submitting_date||'').slice(0,10));
+  const dc=dni==null?['#eceef0','#64748b']:dni<0?['#e0e3e5','#64748b']:dni<=5?['#ffdad6','#93000a']:dni<=12?['#fde68a','#92400e']:['#c7f3dc','#00391f'];
+  const id=Number(o.id);
+  return `<tr ${o.projekt_id?`onclick="go('postepowanie',${Number(o.projekt_id)})"`:''} class="border-b border-outline-variant ${o.projekt_id?'cursor-pointer hover:bg-surface-container-low':''} ${o.status==='odrzucone'?'opacity-50':''}">
+   <td class="p-3 max-w-[420px]"><div class="font-medium text-primary">${esc(o.order_object||'—')}</div>
+    <div class="text-xs text-on-surface-variant">${esc(o.bzp_number||'')} · publ. ${esc((o.publication_date||'').slice(0,10))}${o.url_postepowania?` · <a onclick="event.stopPropagation()" href="${esc(o.url_postepowania)}" target="_blank" rel="noopener noreferrer" class="hover:underline" style="color:#0b61a1">ogłoszenie BZP ↗</a>`:''}</div>
+    ${o._projekt?`<div class="text-[11px] mt-1 font-semibold" style="color:#0f7a4d">Połączono z projektem #${Number(o._projekt.id)} · kliknij, aby otworzyć dokumenty</div>`:''}</td>
+   <td class="p-3 text-on-surface-variant">${esc(o.organization||'—')}<div class="text-xs">${esc(o.city||'')}</div></td>
+   <td class="p-3 whitespace-nowrap"><span class="pill tnum" style="background:${dc[0]};color:${dc[1]}">${esc(radarTerminTekst(o))}${dni!=null?' · '+(wygasl?'po terminie':dni+' dni'):''}</span>${terminZmieniony?'<div class="text-[10px] mt-1 font-semibold" style="color:#0f7a4d">AKTUALNY · Z MONITORA</div>':''}</td>
+   <td class="p-3"><span class="pill ${wygasl?'bg-surface-container text-on-surface-variant':o.projekt_id?'bg-tertiary-container text-on-tertiary-container':o.status==='obserwowane'?'bg-secondary/10 text-secondary':'bg-surface-container text-on-surface-variant'}">${wygasl?'po terminie':o.projekt_id?'w przetargach':esc(o.status)}</span></td>
+   <td class="p-3 text-right whitespace-nowrap">
+    ${o.projekt_id?`<button onclick="event.stopPropagation();go('postepowanie',${Number(o.projekt_id)})" class="inline-flex items-center gap-1 text-xs text-secondary hover:underline font-semibold">Dokumenty i projekt<span class="material-symbols-outlined text-[16px]">arrow_forward</span></button>`
+    :`<button onclick="radarAkcja(${id},'dodaj',this)" title="Dodaj do przetargów" class="inline-flex items-center gap-1 bg-secondary text-white px-2.5 py-1.5 rounded-lg text-xs font-semibold hover:opacity-90 mr-1"><span class="material-symbols-outlined text-[16px]">add_task</span>Do przetargów</button>
+      ${o.status!=='obserwowane'?`<button onclick="radarAkcja(${id},'obserwowane',this)" title="Obserwuj" class="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-outline-variant text-on-surface-variant hover:border-secondary hover:text-secondary transition mr-1"><span class="material-symbols-outlined text-[18px]">visibility</span></button>`:''}
+      ${o.status!=='odrzucone'?`<button onclick="radarAkcja(${id},'odrzucone',this)" title="Odrzuć" class="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-outline-variant text-on-surface-variant hover:border-error hover:text-error transition"><span class="material-symbols-outlined text-[18px]">close</span></button>`
+       :`<button onclick="radarAkcja(${id},'nowy',this)" title="Przywróć" class="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-outline-variant text-on-surface-variant hover:border-secondary hover:text-secondary transition"><span class="material-symbols-outlined text-[18px]">restore</span></button>`}`}</td></tr>`;
+ }).join('')||'<tr><td colspan=5 class="p-8 text-center text-on-surface-variant">Brak ogłoszeń w tym widoku. Zmień filtry albo kliknij „Skanuj teraz".</td></tr>';
+}
+async function radarAkcja(id,akcja,btn){
+ if(btn)btn.disabled=true;
+ try{
+  if(akcja==='dodaj'){
+   const r=await (await fetch('/api/radar/'+id+'/dodaj-do-przetargow',{method:'POST'})).json();
+   if(r.ok){ if(confirm('Dodano jako projekt #'+r.projekt_id+' (monitoring portalu wystartuje automatycznie).\nOtworzyć projekt?')) return go('postepowanie',r.projekt_id); }
+   else alert(r.error||'Nie udało się dodać.');
+  }else{
+   const rs=await(await fetch('/api/radar/'+id+'/status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:akcja})})).json();
+   if(rs&&rs.error){alert(rs.error||'Nie udało się zmienić statusu.');return;}
+  }
+ }catch(e){alert('Błąd: '+e.message);}
+ go('radar');
+}
+async function radarSkanuj(btn){
+ const stary=btn.innerHTML; btn.disabled=true; btn.innerHTML='Skanuję…';
+ try{ const r=await (await fetch('/api/radar/skanuj',{method:'POST'})).json();
+  alert('Skan zakończony: '+r.pobrane+' ogłoszeń z BZP, '+r.nowe+' nowych, '+(r.zaktualizowane||0)+' zaktualizowanych.');
+ }catch(e){alert('Błąd skanu: '+e.message);}
+ btn.disabled=false; btn.innerHTML=stary; go('radar');
+}
+
+// ================= CENY (wiedza cenowa Qdrant — sugerowane ceny)
+VIEWS.ceny=async(app)=>{
+ let st={punkty:0};
+ try{ st=await jget('/api/wiedza-cen/status'); }catch(e){}
+ app.innerHTML=`
+ <div class="mb-6 flex items-end justify-between gap-3 flex-wrap"><div>
+  <p class="text-sm text-secondary font-semibold uppercase tracking-wider">Wiedza cenowa</p>
+  <h2 class="text-3xl font-extrabold text-primary">Sugerowane ceny</h2>
+  <p class="text-on-surface-variant">Szukaj po nazwie materiału/roboty — baza wektorowa z audytów, ofert i cenników (${st.punkty||0} pozycji).</p></div>
+  <button onclick="cenyIndeksuj(this)" class="bg-surface border border-outline-variant px-4 py-2 rounded-lg text-sm font-semibold hover:border-secondary flex items-center gap-1.5">
+   <span class="material-symbols-outlined text-[18px]">sync</span>Re-indeksuj</button></div>
+ <div class="flex gap-2 mb-5">
+  <input id="ceny-q" onkeydown="if(event.key==='Enter')cenySzukaj()" placeholder="np. tynk renowacyjny wapno-tras, oprawa LED IP54, posadzka żywiczna…" class="flex-1 border border-outline-variant rounded-lg p-3 text-sm bg-surface">
+  <button onclick="cenySzukaj()" class="bg-secondary text-white px-5 py-2 rounded-lg text-sm font-semibold hover:opacity-90 flex items-center gap-1.5">
+   <span class="material-symbols-outlined text-[18px]">search</span>Szukaj</button></div>
+ <div id="ceny-stat"></div>
+ <div id="ceny-wyniki"><p class="text-sm text-on-surface-variant">Wpisz zapytanie — dostaniesz podobne pozycje z historii z cenami i sugerowaną medianą.</p></div>`;
+};
+async function cenySzukaj(){
+ const q=(document.getElementById('ceny-q')?.value||'').trim();
+ if(!q)return;
+ const wy=document.getElementById('ceny-wyniki'); wy.innerHTML='<p class="text-sm text-on-surface-variant">Szukam…</p>';
+ try{
+  const r=await jget('/api/wiedza-cen/sugeruj?q='+encodeURIComponent(q)+'&limit=12');
+  const s=r.cena_sugerowana;
+  document.getElementById('ceny-stat').innerHTML=s?`
+   <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+    ${kpi('payments','Cena sugerowana (mediana)',Number(s.mediana).toLocaleString('pl-PL')+' zł'+(s.jednostka?' /'+s.jednostka:''),s.pewnosc?('⚠ '+s.pewnosc):('z '+s.probek+' próbek'),s.pewnosc?'#b45309':'#0f7a4d')}
+    ${kpi('arrow_downward','Min',Number(s.min).toLocaleString('pl-PL')+' zł','najtaniej w historii','#0058be')}
+    ${kpi('arrow_upward','Max',Number(s.max).toLocaleString('pl-PL')+' zł','najdrożej w historii','#d35400')}
+    ${kpi('database','Trafienia',r.wyniki.length,'podobne pozycje','#0d2b4e')}
+   </div>`:'<p class="text-sm mb-4" style="color:#92400e">Brak cen w trafieniach — spróbuj inaczej sformułować.</p>';
+  wy.innerHTML=r.wyniki.length?`<section class="bg-surface border border-outline-variant rounded-xl shadow-ambient overflow-hidden">
+   <div class="overflow-x-auto"><table class="dtable w-full text-sm text-left">
+    <thead><tr class="text-[11px] uppercase tracking-wide text-on-surface-variant">
+     <th class="p-3 font-semibold">Pozycja</th><th class="p-3 font-semibold">Jedn.</th><th class="p-3 font-semibold text-right">Cena</th><th class="p-3 font-semibold">Źródło</th><th class="p-3 font-semibold text-right">Podobieństwo</th></tr></thead>
+    <tbody>${r.wyniki.map(w=>`<tr class="border-b border-outline-variant">
+     <td class="p-3"><div class="font-medium text-primary">${esc(w.nazwa)}</div><div class="text-xs text-on-surface-variant">${esc(w.projekt||'')}${w.data?' · '+esc(w.data):''}</div></td>
+     <td class="p-3 text-on-surface-variant">${esc(w.jedn||'—')}</td>
+     <td class="p-3 text-right tnum font-semibold">${w.cena!=null?Number(w.cena).toLocaleString('pl-PL')+' zł':'—'}</td>
+     <td class="p-3"><span class="pill text-[10px] ${w.typ==='kosztorys_wsk'?'':'bg-surface-container text-on-surface-variant'}" style="${w.typ==='kosztorys_wsk'?'background:#c7f3dc;color:#00391f':''}">${esc(w.typ==='kosztorys_wsk'?'kosztorys WSK':w.typ==='material_audyt'?'audyt':w.typ==='oferta_podwykonawcy'?'oferta':'cennik')}</span> <span class="text-xs text-on-surface-variant">${esc((w.zrodlo||'').slice(0,28))}</span>${w.liczona?' <span class="pill text-[10px]" style="background:#dbeafe;color:#1e40af" title="ta cena weszła do mediany">liczona</span>':''}</td>
+     <td class="p-3 text-right tnum text-on-surface-variant">${Math.round((w.podobienstwo||0)*100)}%</td></tr>`).join('')}</tbody></table></div></section>`
+  :'<p class="text-sm text-on-surface-variant">Brak podobnych pozycji w bazie.</p>';
+ }catch(e){wy.innerHTML='<p class="text-sm text-error">Błąd: '+esc(e.message)+'</p>';}
+}
+async function cenyIndeksuj(btn){
+ const ic=btn.innerHTML; btn.disabled=true; btn.innerHTML='Indeksuję…';
+ try{ const r=await (await fetch('/api/wiedza-cen/indeksuj',{method:'POST'})).json();
+  alert('Zaindeksowano '+r.zaindeksowane+' pozycji (audyty: '+(r.z_audytow||0)+', oferty: '+(r.z_ofert||0)+', cenniki: '+(r.z_cennikow||0)+').');
+ }catch(e){alert('Błąd indeksacji: '+e.message);}
+ btn.disabled=false; btn.innerHTML=ic; go('ceny');
+}
+
+// ================= FIRMY (kartoteka podmiotów do ofert)
+const ROLA_LABEL={wlasna:'firma własna',partner:'partner konsorcjum',podwykonawca:'podwykonawca',inna:'inna firma'};
+VIEWS.firmy=async(app)=>{
+ const arr=(await jget('/api/firmy-oferenci'))||[];
+ app.innerHTML=`
+ <div class="mb-6 flex items-end justify-between gap-3 flex-wrap"><div>
+  <p class="text-sm text-secondary font-semibold uppercase tracking-wider">Administracja</p>
+  <h2 class="text-3xl font-extrabold text-primary">Kartoteka firm</h2>
+  <p class="text-on-surface-variant">Podmioty do ofert: WSK, partnerzy konsorcjum, podwykonawcy. Dane zasilają paczki ofertowe.</p></div>
+  <button onclick="go('firma','nowa')" class="bg-secondary text-white px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 flex items-center gap-1.5">
+   <span class="material-symbols-outlined text-[18px]">add</span>Dodaj firmę</button></div>
+ <section class="bg-surface border border-outline-variant rounded-xl shadow-ambient overflow-hidden">
+  <div class="overflow-x-auto"><table class="dtable w-full text-sm text-left">
+   <thead><tr class="text-[11px] uppercase tracking-wide text-on-surface-variant">
+    <th class="p-3 font-semibold">Firma</th><th class="p-3 font-semibold">NIP / KRS</th><th class="p-3 font-semibold">Rola</th><th class="p-3 font-semibold">Referencje</th><th class="p-3 font-semibold">Kadra</th><th class="p-3 font-semibold">Kompletność</th></tr></thead>
+   <tbody>${arr.map(f=>{
+     const refN=(f.referencje||[]).length, kadN=(f.kadra||[]).length;
+     const braki=['nip','adres','reprezentacja'].filter(k=>!f[k]).length+(refN?0:1)+(kadN?0:1);
+     return `<tr onclick="go('firma',${Number(f.id)})" class="cursor-pointer hover:bg-surface-container-low transition">
+      <td class="p-3"><div class="font-medium text-primary">${esc(f.nazwa)}</div><div class="text-xs text-on-surface-variant">${esc(f.skrot||'')}${f.forma_prawna?' · '+esc(f.forma_prawna):''}</div></td>
+      <td class="p-3 text-on-surface-variant text-xs">${esc(f.nip||'—')}<br>${esc(f.krs||'')}</td>
+      <td class="p-3"><span class="pill ${f.rola_domyslna==='wlasna'?'bg-secondary/10 text-secondary':'bg-surface-container text-on-surface-variant'}">${esc(ROLA_LABEL[f.rola_domyslna]||f.rola_domyslna)}</span></td>
+      <td class="p-3 tnum">${refN}</td><td class="p-3 tnum">${kadN}</td>
+      <td class="p-3">${braki?`<span class="pill" style="background:#fde68a;color:#92400e">uzupełnij (${braki})</span>`:'<span class="pill" style="background:#c7f3dc;color:#00391f">komplet ✓</span>'}</td></tr>`;
+   }).join('')||'<tr><td colspan=6 class="p-8 text-center text-on-surface-variant">Brak firm — dodaj pierwszą.</td></tr>'}</tbody></table></div></section>`;
+};
+
+VIEWS.firma=async(app,id)=>{
+ const nowa=(id==='nowa');
+ let f={nazwa:'',skrot:'',forma_prawna:'',nip:'',regon:'',krs:'',adres:'',reprezentacja:'',konto_wadium:'',dokumenty_drive_url:'',rola_domyslna:'partner',polisa:null,referencje:[],kadra:[]};
+ if(!nowa){ f=await jget('/api/firmy-oferenci/'+Number(id)); }
+ const pole=(label,k,ph)=>`<label class="block"><span class="text-xs font-semibold text-on-surface-variant">${label}</span>
+  <input id="ff_${k}" value="${esc(f[k]||'')}" placeholder="${ph||''}" class="w-full border border-outline-variant rounded-lg p-2 text-sm mt-0.5 bg-surface"></label>`;
+ app.innerHTML=`
+ <div class="mb-4 text-sm text-on-surface-variant flex items-center gap-1">
+  <a onclick="go('firmy')" class="hover:text-secondary cursor-pointer">Firmy</a>
+  <span class="material-symbols-outlined text-[16px]">chevron_right</span><span class="text-primary">${nowa?'Nowa firma':esc(f.nazwa)}</span></div>
+ <div class="mb-5 flex items-center justify-between flex-wrap gap-3">
+  <h2 class="text-2xl font-extrabold text-primary">${nowa?'Nowa firma':esc(f.nazwa)}</h2>
+  <div class="flex gap-2">
+   ${nowa?'':`<button onclick="firmaUsun(${Number(f.id)})" class="border border-outline-variant text-error px-3 py-2 rounded-lg text-sm hover:border-error">Dezaktywuj</button>`}
+   <button onclick="firmaZapisz(${nowa?'null':Number(f.id)})" class="bg-secondary text-white px-5 py-2 rounded-lg text-sm font-semibold hover:opacity-90">💾 Zapisz</button></div></div>
+ <div class="grid lg:grid-cols-2 gap-6">
+  <section class="bg-surface border border-outline-variant rounded-xl shadow-ambient p-5 space-y-3">
+   <h3 class="font-bold text-primary">Dane rejestrowe</h3>
+   ${pole('Pełna nazwa *','nazwa')}
+   <div class="grid grid-cols-2 gap-3">${pole('Skrót','skrot','np. WSK')}${pole('Forma prawna','forma_prawna','np. sp. z o.o.')}</div>
+   <div class="grid grid-cols-3 gap-3">
+    <label class="block"><span class="text-xs font-semibold text-on-surface-variant">NIP</span>
+     <div class="flex gap-1 mt-0.5">
+      <input id="ff_nip" value="${esc(f.nip||'')}" class="flex-1 min-w-0 border border-outline-variant rounded-lg p-2 text-sm bg-surface">
+      <button onclick="firmaZNip(this)" title="Pobierz dane z rejestrów (Biała lista MF + KRS)" class="shrink-0 inline-flex items-center justify-center w-9 rounded-lg bg-secondary text-white hover:opacity-90"><span class="material-symbols-outlined text-[18px]">cloud_download</span></button>
+     </div></label>
+    ${pole('REGON','regon')}${pole('KRS / CEIDG','krs')}</div>
+   ${pole('Adres siedziby','adres')}
+   <label class="block"><span class="text-xs font-semibold text-on-surface-variant">Reprezentacja (kto podpisuje ofertę)</span>
+    <textarea id="ff_reprezentacja" rows="2" class="w-full border border-outline-variant rounded-lg p-2 text-sm mt-0.5 bg-surface">${esc(f.reprezentacja||'')}</textarea></label>
+   <div class="grid grid-cols-2 gap-3">${pole('Konto do wadium','konto_wadium')}
+    <label class="block"><span class="text-xs font-semibold text-on-surface-variant">Rola domyślna</span>
+     <select id="ff_rola_domyslna" class="w-full border border-outline-variant rounded-lg p-2 text-sm mt-0.5 bg-surface">
+      ${Object.entries(ROLA_LABEL).map(([k,v])=>`<option value="${k}" ${f.rola_domyslna===k?'selected':''}>${v}</option>`).join('')}</select></label></div>
+   ${pole('Folder Drive z dokumentami (polisa, US/ZUS, KRS…)','dokumenty_drive_url','https://drive.google.com/…')}
+   <label class="block"><span class="text-xs font-semibold text-on-surface-variant">Polisa OC (numer / suma / ważna do)</span>
+    <input id="ff_polisa" value="${esc(f.polisa?(f.polisa.numer||'')+' / '+(f.polisa.suma||'')+' / '+(f.polisa.wazna_do||''):'')}" placeholder="np. 123456 / 2 000 000 PLN / 31.12.2026" class="w-full border border-outline-variant rounded-lg p-2 text-sm mt-0.5 bg-surface"></label>
+  </section>
+  <div class="space-y-6">
+  <section class="bg-surface border border-outline-variant rounded-xl shadow-ambient p-5">
+   <div class="flex items-center justify-between mb-2"><h3 class="font-bold text-primary">Referencje (wykaz robót)</h3>
+    <button onclick="firmaDodajRef()" class="text-secondary text-sm font-semibold hover:underline">+ dodaj</button></div>
+   <div id="ff_refs" class="space-y-2">${(f.referencje||[]).map(r=>firmaRefRow(r)).join('')}</div>
+   ${(f.referencje||[]).length?'':'<p class="text-xs text-on-surface-variant">Brak — dodaj roboty referencyjne (nazwa, zamawiający, wartość, lata, zakres).</p>'}
+  </section>
+  <section class="bg-surface border border-outline-variant rounded-xl shadow-ambient p-5">
+   <div class="flex items-center justify-between mb-2"><h3 class="font-bold text-primary">Kadra (kierownicy, uprawnienia)</h3>
+    <button onclick="firmaDodajKadre()" class="text-secondary text-sm font-semibold hover:underline">+ dodaj</button></div>
+   <div id="ff_kadra" class="space-y-2">${(f.kadra||[]).map(k=>firmaKadraRow(k)).join('')}</div>
+   ${(f.kadra||[]).length?'':'<p class="text-xs text-on-surface-variant">Brak — dodaj osoby (imię i nazwisko, rola, nr uprawnień, staż).</p>'}
+  </section></div>
+ </div>`;
+};
+function firmaRefRow(r){r=r||{};return `<div class="ref-row grid grid-cols-12 gap-1.5 items-center">
+ <input data-k="nazwa" value="${esc(r.nazwa||'')}" placeholder="Nazwa roboty" class="col-span-4 border border-outline-variant rounded-lg p-1.5 text-xs bg-surface">
+ <input data-k="zamawiajacy" value="${esc(r.zamawiajacy||'')}" placeholder="Zamawiający" class="col-span-3 border border-outline-variant rounded-lg p-1.5 text-xs bg-surface">
+ <input data-k="wartosc" value="${esc(r.wartosc||'')}" placeholder="Wartość brutto" class="col-span-2 border border-outline-variant rounded-lg p-1.5 text-xs bg-surface">
+ <input data-k="lata" value="${esc(r.lata||'')}" placeholder="Lata" class="col-span-2 border border-outline-variant rounded-lg p-1.5 text-xs bg-surface">
+ <button onclick="this.parentElement.remove()" class="col-span-1 text-error text-sm">✕</button></div>`;}
+function firmaKadraRow(k){k=k||{};return `<div class="kadra-row grid grid-cols-12 gap-1.5 items-center">
+ <input data-k="osoba" value="${esc(k.osoba||'')}" placeholder="Imię i nazwisko" class="col-span-3 border border-outline-variant rounded-lg p-1.5 text-xs bg-surface">
+ <input data-k="rola" value="${esc(k.rola||'')}" placeholder="Rola (np. kier. budowy)" class="col-span-3 border border-outline-variant rounded-lg p-1.5 text-xs bg-surface">
+ <input data-k="uprawnienia" value="${esc(k.uprawnienia||'')}" placeholder="Nr uprawnień" class="col-span-3 border border-outline-variant rounded-lg p-1.5 text-xs bg-surface">
+ <input data-k="staz" value="${esc(k.staz||'')}" placeholder="Staż (lat)" class="col-span-2 border border-outline-variant rounded-lg p-1.5 text-xs bg-surface">
+ <button onclick="this.parentElement.remove()" class="col-span-1 text-error text-sm">✕</button></div>`;}
+function firmaDodajRef(){document.getElementById('ff_refs').insertAdjacentHTML('beforeend',firmaRefRow());}
+function firmaDodajKadre(){document.getElementById('ff_kadra').insertAdjacentHTML('beforeend',firmaKadraRow());}
+async function firmaZNip(btn){
+ const nip=(document.getElementById('ff_nip')?.value||'').replace(/\D/g,'');
+ if(nip.length!==10){alert('Wpisz poprawny NIP (10 cyfr) i kliknij ponownie.');return;}
+ const ic=btn.innerHTML; btn.disabled=true; btn.innerHTML='<span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>';
+ try{
+  const r=await (await fetch('/api/firmy-oferenci/nip/'+nip)).json();
+  if(r.error){alert(r.error);}
+  else{
+   const ustaw=(k,v)=>{const el=document.getElementById('ff_'+k); if(el&&v&&!el.value.trim()) el.value=v; else if(el&&v&&el.value.trim()&&confirm('Pole „'+k+'" ma już wartość:\n'+el.value+'\n\nZastąpić przez:\n'+v+' ?')) el.value=v;};
+   ustaw('nazwa',r.nazwa); ustaw('regon',r.regon); ustaw('krs',r.krs);
+   ustaw('adres',r.adres); ustaw('forma_prawna',r.forma_prawna); ustaw('reprezentacja',r.reprezentacja);
+   if(r.konta&&r.konta.length) ustaw('konto_wadium',r.konta[0]);
+   alert('Pobrano z rejestrów: '+(r.nazwa||'')+(r.status_vat?'\nStatus VAT: '+r.status_vat:'')+(r.konta&&r.konta.length>1?'\nKont bankowych w wykazie: '+r.konta.length+' (wstawiono pierwsze — sprawdź!)':''));
+  }
+ }catch(e){alert('Błąd pobierania: '+e.message);}
+ btn.disabled=false; btn.innerHTML=ic;
+}
+async function firmaZapisz(id){
+ const v=k=>{const el=document.getElementById('ff_'+k);return el?el.value.trim():'';};
+ const zbierz=(sel)=>[...document.querySelectorAll(sel)].map(row=>{
+  const o={};row.querySelectorAll('input').forEach(i=>o[i.dataset.k]=i.value.trim());return o;
+ }).filter(o=>Object.values(o).some(x=>x));
+ const pol=v('polisa').split('/').map(s=>s.trim());
+ const body={id:id||undefined,nazwa:v('nazwa'),skrot:v('skrot'),forma_prawna:v('forma_prawna'),nip:v('nip'),regon:v('regon'),krs:v('krs'),adres:v('adres'),reprezentacja:v('reprezentacja'),konto_wadium:v('konto_wadium'),dokumenty_drive_url:v('dokumenty_drive_url'),rola_domyslna:v('rola_domyslna')||'partner',
+  polisa:v('polisa')?{numer:pol[0]||'',suma:pol[1]||'',wazna_do:pol[2]||''}:null,
+  referencje:zbierz('.ref-row'),kadra:zbierz('.kadra-row')};
+ if(!body.nazwa){alert('Nazwa firmy jest wymagana.');return;}
+ try{
+  const r=await (await fetch('/api/firmy-oferenci',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})).json();
+  if(r.ok) go('firma',r.id); else alert(r.error||'Błąd zapisu.');
+ }catch(e){alert('Błąd sieci: '+e.message);}
+}
+async function firmaUsun(id){
+ if(!confirm('Dezaktywować firmę? (zniknie z list wyboru, dane zostają)'))return;
+ try{
+  const r=await fetch('/api/firmy-oferenci/'+id,{method:'DELETE'});
+  if(!r.ok){const e=await r.json().catch(()=>({}));alert(e.detail||e.error||'Nie udało się dezaktywować.');return;}
+  go('firmy');
+ }catch(e){alert('Błąd sieci: '+e.message);}
+}
+
+// ================= REKOMENDATOR (marża: wycena vs realny zakup z faktur) =====
+VIEWS.rekomendator=async(app)=>{
+ app.innerHTML='<div class="flex items-center gap-3 text-on-surface-variant p-6"><span class="material-symbols-outlined animate-spin">progress_activity</span>Liczę marże, dostawców i rozrzut cen…</div>';
+ const [m,dost,roz,anom]=await Promise.all([
+  jget('/api/rekomendator/marze').catch(()=>({sygnaly:[],podsumowanie:{}})),
+  jget('/api/rekomendator/dostawcy').catch(()=>({dostawcy:[]})),
+  jget('/api/rekomendator/rozrzut').catch(()=>({materialy:[]})),
+  jget('/api/rekomendator/anomalie').catch(()=>({anomalie:[],odrzucone:[],profil:{}}))
+ ]);
+ const ps=m.podsumowanie||{};
+ const klasaPillM=k=>k?`<span class="pill text-[11px]" style="background:${k.kolor}1a;color:${k.kolor}" title="${esc(k.opis||'')}">${esc(k.kod)}</span>`:'';
+ const fmtZl=v=>v==null?'—':Number(v).toLocaleString('pl-PL',{maximumFractionDigits:0})+' zł';
+ app.innerHTML=`
+ <div class="mb-6"><p class="text-sm text-secondary font-semibold uppercase tracking-wider">Analityka</p>
+  <h2 class="text-3xl font-extrabold text-primary">Rekomendator</h2>
+  <p class="text-on-surface-variant">Nasze wyceny zestawione z realnymi cenami zakupu z faktur (Optima/ERP). Wszystko liczone regułami — bez szacowania. Marża >40% typowo zawiera robociznę i narzuty.</p></div>
+ <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  ${kpi('warning','Poniżej ceny zakupu',ps.ponizej_zakupu||0,'ryzyko straty',(ps.ponizej_zakupu?'#dc2626':'#16a34a'))}
+  ${kpi('balance','Bez marży / cienka',ps.bez_marzy||0,'do sprawdzenia','#d35400')}
+  ${kpi('link','Sparowanych materiałów',ps.par||0,'wycena↔zakup','#0058be')}
+  ${kpi('payments','Zakupy '+(dost.okres_mies||18)+' mies',fmtZl(dost.suma_netto),'netto u dostawców','#0d2b4e')}
+ </div>
+
+ ${(()=>{const ap=anom.profil||{};return `
+ <section class="bg-surface border border-outline-variant rounded-xl shadow-ambient overflow-hidden mb-6">
+  <div class="p-4 border-b border-outline-variant flex items-center justify-between flex-wrap gap-2">
+   <div class="flex items-center gap-2"><span class="material-symbols-outlined text-secondary">query_stats</span><h3 class="font-bold text-primary">Anomalie cenowe zakupów (Nemesis Cross-Reference)</h3></div>
+   <div class="text-xs text-on-surface-variant">${ap.anomalii_potwierdzonych||0} anomalii · <b>${ap.odrzuconych_walidacja||0} odrzuconych przez walidację</b> (błędy danych) · oszczędność ${(ap.potencjalna_oszczednosc_zl||0).toLocaleString('pl-PL')} zł (${ap.oszczednosc_proc_budzetu||0}%)</div></div>
+  <div class="p-3 text-[11px] text-on-surface-variant border-b border-outline-variant">Liczone z realnych partii zakupowych (material_lots, ERP). KROK 1 wykrywa rozrzut, KROK 2 odrzuca śmieci danych (np. błąd jednostki +100000%). Oszczędność = nadpłata ponad medianę ceny — konserwatywnie.</div>
+  <div class="overflow-x-auto"><table class="dtable w-full text-sm text-left">
+   <thead><tr class="text-[11px] uppercase tracking-wide text-on-surface-variant">
+    <th class="p-3">Materiał</th><th class="p-3 text-center">Zakupów</th><th class="p-3 text-right">Min–Max</th><th class="p-3 text-right">Mediana</th><th class="p-3 text-right">Rozrzut</th><th class="p-3 text-right">Możliwa oszczędność</th><th class="p-3">Klasa</th></tr></thead>
+   <tbody>${(anom.anomalie||[]).slice(0,20).map(a=>`
+    <tr class="border-b border-outline-variant hover:bg-surface-container-low">
+     <td class="p-3"><div class="text-on-surface">${esc(a.material)}</div><div class="text-[11px] text-on-surface-variant">${esc(a.jednostka||'')} · ${a.dostawcow} dostawc.${a.przeplacamy_teraz?' · <span style=\"color:#dc2626\">ostatni zakup powyżej mediany</span>':''}</div></td>
+     <td class="p-3 text-center tnum">${a.zakupow}</td>
+     <td class="p-3 text-right tnum text-on-surface-variant text-xs">${a.cena_min.toLocaleString('pl-PL')}–${a.cena_max.toLocaleString('pl-PL')}</td>
+     <td class="p-3 text-right tnum">${a.cena_mediana.toLocaleString('pl-PL')} zł</td>
+     <td class="p-3 text-right tnum font-bold" style="color:${a.klasa.kolor}">+${a.rozrzut_proc}%</td>
+     <td class="p-3 text-right tnum font-semibold">${a.oszczednosc_zl.toLocaleString('pl-PL')} zł</td>
+     <td class="p-3"><span class="pill text-[11px]" style="background:${a.klasa.kolor}1a;color:${a.klasa.kolor}" title="${esc(a.klasa.opis)}">${a.klasa.kod}</span></td></tr>`).join('')||'<tr><td colspan=7 class="p-8 text-center text-on-surface-variant">Brak anomalii — potrzeba ≥3 zakupów tego samego materiału.</td></tr>'}</tbody></table></div>
+  ${(anom.odrzucone||[]).length?`<details class="p-3 border-t border-outline-variant"><summary class="cursor-pointer text-xs font-semibold text-on-surface-variant">🛡 Odrzucone przez walidację (${anom.odrzucone.length}) — transparentność antyhalucynacji</summary><div class="mt-2 space-y-1">${anom.odrzucone.map(o=>`<div class="text-[11px] text-on-surface-variant">✗ ${esc((o.material||'').slice(0,45))} — ${esc(o.powod)}</div>`).join('')}</div></details>`:''}
+ </section>`;})()}
+ <section class="bg-surface border border-outline-variant rounded-xl shadow-ambient overflow-hidden mb-6">
+  <div class="p-4 border-b border-outline-variant flex items-center gap-2"><span class="material-symbols-outlined text-secondary">price_check</span><h3 class="font-bold text-primary">Marża materiałowa — nasza wycena vs realny zakup</h3></div>
+  <div class="overflow-x-auto"><table class="dtable w-full text-sm text-left">
+   <thead><tr class="text-[11px] uppercase tracking-wide text-on-surface-variant">
+    <th class="p-3">Pozycja w naszej wycenie</th><th class="p-3 text-right">Nasza cena</th><th class="p-3">Najbliższy zakup (faktura)</th><th class="p-3 text-right">Cena zakupu</th><th class="p-3 text-right">Marża</th><th class="p-3">Sygnał</th></tr></thead>
+   <tbody>${(m.sygnaly||[]).map(s=>`
+    <tr class="border-b border-outline-variant hover:bg-surface-container-low">
+     <td class="p-3"><div class="text-on-surface">${esc(s.nasza_nazwa||'')}</div><div class="text-[11px] text-on-surface-variant">${esc((s.nasze_zrodlo||'').slice(0,30))} · ${esc(s.jedn||'')}</div></td>
+     <td class="p-3 text-right tnum font-semibold">${fmtZl(s.nasza_cena)}</td>
+     <td class="p-3 text-on-surface-variant text-xs">${esc(s.zakup_nazwa||'')} <span class="text-[10px]">(${Math.round(s.podobienstwo*100)}%)</span></td>
+     <td class="p-3 text-right tnum">${fmtZl(s.zakup_cena)}</td>
+     <td class="p-3 text-right tnum font-bold" style="color:${s.klasa.kolor}">${s.marza_proc>0?'+':''}${s.marza_proc}%</td>
+     <td class="p-3">${klasaPillM(s.klasa)}</td></tr>`).join('')||'<tr><td colspan=6 class="p-8 text-center text-on-surface-variant">Brak sparowanych materiałów — baza cen zakupu rośnie z każdą synchronizacją ERP.</td></tr>'}</tbody></table></div></section>
+
+ <div class="grid lg:grid-cols-2 gap-6">
+  <section class="bg-surface border border-outline-variant rounded-xl shadow-ambient overflow-hidden">
+   <div class="p-4 border-b border-outline-variant flex items-center gap-2"><span class="material-symbols-outlined text-secondary">local_shipping</span><h3 class="font-bold text-primary">Top dostawcy (cele negocjacji)</h3></div>
+   <div class="divide-y divide-outline-variant max-h-[420px] overflow-y-auto">${(dost.dostawcy||[]).map((x,i)=>`
+    <div class="flex items-center gap-3 p-3"><span class="text-xs text-on-surface-variant w-5 text-center tnum">${i+1}</span>
+     <div class="flex-1 min-w-0"><div class="text-sm text-on-surface truncate">${esc(x.nazwa)}</div><div class="text-[11px] text-on-surface-variant">${x.faktur} faktur</div></div>
+     <div class="text-sm font-semibold tnum whitespace-nowrap">${fmtZl(x.netto)}</div></div>`).join('')||'<p class="p-6 text-sm text-on-surface-variant">Brak danych dostawców.</p>'}</div></section>
+
+  <section class="bg-surface border border-outline-variant rounded-xl shadow-ambient overflow-hidden">
+   <div class="p-4 border-b border-outline-variant flex items-center gap-2"><span class="material-symbols-outlined text-secondary">savings</span><h3 class="font-bold text-primary">Rozrzut cen zakupu — gdzie szukać taniej</h3></div>
+   <div class="divide-y divide-outline-variant max-h-[420px] overflow-y-auto">${(roz.materialy||[]).map(x=>`
+    <div class="p-3"><div class="flex items-center justify-between gap-2"><span class="text-sm text-on-surface capitalize">${esc(x.materiał)}</span><span class="pill text-[10px]" style="background:#fef3c7;color:#92400e">+${x.rozrzut_proc}% różnicy</span></div>
+     <div class="text-[11px] text-on-surface-variant mt-0.5">${x.wariantow} wariantów · od ${fmtZl(x.cena_min)} do ${fmtZl(x.cena_max)}</div></div>`).join('')||'<p class="p-6 text-sm text-on-surface-variant">Brak materiałów z rozrzutem.</p>'}</div></section>
+ </div>`;
+};
+
+// ================= KONKURENCJA (analityka cenowa, deterministyczna) =========
+const KLASA_KOLOR={DUMPING:'#7f1d1d',AGRESYWNA:'#9a3412',RYNKOWA:'#166534',WYSOKA:'#854d0e',ZAWYŻONA:'#6b21a8',BRAK:'#64748b'};
+function klasaPill(k){if(!k)return '';return `<span class="pill text-[11px]" style="background:${k.kolor||KLASA_KOLOR[k.kod]||'#64748b'}1a;color:${k.kolor||KLASA_KOLOR[k.kod]||'#64748b'}" title="${esc(k.opis||'')}">${esc(k.kod)}</span>`;}
+// warnNeg=true (kontekst „vs my"): konkurent TAŃSZY od nas (ujemne) = czerwony (zagrożenie), droższy = zielony
+function odchBadge(v,warnNeg){if(v===null||v===undefined)return '<span class="text-on-surface-variant">—</span>';const kol=warnNeg?(v<-2?'#b91c1c':v>2?'#166534':'#64748b'):(v<-2?'#166534':v>8?'#9a3412':'#64748b');return `<span class="tnum" style="color:${kol}">${v>0?'+':''}${v}%</span>`;}
+// Warstwa Wiarygodność KRD (protokół Chase) — badge z długami/FairPay
+function krdPill(k){
+ if(!k||!k.sprawdzony)return '<span class="text-[11px] text-on-surface-variant" title="Nie sprawdzono w KRD">—</span>';
+ if(k.ok===false)return `<span class="pill text-[10px]" style="background:#64748b1a;color:#64748b" title="${esc(k.opis||'')}">BŁĄD KRD</span>`;
+ const saldo=k.saldo>0?' · '+Math.round(k.saldo).toLocaleString('pl-PL')+' zł':'';
+ return `<span class="pill text-[10px]" style="background:${k.kolor}1a;color:${k.kolor}" title="${esc(k.opis||'')}">${esc(k.kod)}${saldo}</span>`;
+}
+async function krdSprawdzKonkurencje(){
+ const firmy=(window.__konkFirmy||[]).filter(f=>!f.to_my&&f.nip);
+ const nie=firmy.filter(f=>!f.krd||!f.krd.sprawdzony).length;
+ if(!nie){alert('Wszystkie firmy z NIP są już sprawdzone w KRD. (Odśwież pojedynczą firmę na jej karcie.)');return;}
+ if(!confirm(`Sprawdzić ${nie} firm(y) w KRD (protokół Chase)?\n\nKażda NOWA firma zużywa 1 sprawdzenie z pakietu KRD. Firmy już sprawdzone są pomijane.`))return;
+ try{
+  const r=await fetch('/api/konkurencja/krd/sprawdz',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({max_new:Math.min(nie,60)})});
+  const j=await r.json();
+  if(!r.ok){alert('Błąd KRD: '+(j.detail||('HTTP '+r.status)));return;}
+  alert(`KRD gotowe.\nSprawdzono teraz: ${j.sprawdzono_teraz}\nPominięto (już w cache): ${j.z_cache_pominieto}\nBłędy: ${(j.bledy||[]).length}`);
+  go('konkurencja');
+ }catch(e){alert('Błąd sieci: '+e);}
+}
+async function krdSprawdzFirme(fid,juz){
+ if(juz&&!confirm('Firma jest już sprawdzona w KRD. Odświeżyć raport? (zużywa 1 sprawdzenie z pakietu)'))return;
+ try{
+  const r=await fetch('/api/konkurencja/krd/sprawdz',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({firma_id:fid,force:!!juz,max_new:5})});
+  const j=await r.json();
+  if(!r.ok){alert('Błąd KRD: '+(j.detail||('HTTP '+r.status)));return;}
+  if((j.bledy||[]).length)alert('KRD zwrócił błąd: '+JSON.stringify(j.bledy[0]));
+  go('konkurencjaFirma',fid);
+ }catch(e){alert('Błąd sieci: '+e);}
+}
+
+VIEWS.konkurencja=async(app)=>{
+ const d=(await jget('/api/konkurencja'))||{firmy:[],podsumowanie:{}};
+ window.__konkFirmy=d.firmy;   // dla przycisku „Sprawdź w KRD"
+ const ps=d.podsumowanie||{};
+ const my=d.firmy.find(f=>f.to_my);
+ const doKrd=d.firmy.filter(f=>!f.to_my&&f.nip&&(!f.krd||!f.krd.sprawdzony)).length;
+ app.innerHTML=`
+ <div class="mb-6"><p class="text-sm text-secondary font-semibold uppercase tracking-wider">Analityka</p>
+  <h2 class="text-3xl font-extrabold text-primary">Konkurencja</h2>
+  <p class="text-on-surface-variant">Kto z kim startuje, za ile, jak odbiega od budżetu zamawiającego i od naszej oferty. Wszystkie liczby z otwarć ofert — bez szacowania.</p></div>
+ <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  ${kpi('groups_3','Firm konkurencji',ps.firm||0,'w bazie ofert','#0058be')}
+  ${kpi('gavel','Przetargów z otwarciem',ps.przetargow||0,'przeanalizowanych','#0d2b4e')}
+  ${kpi('format_list_numbered','Ofert łącznie',ps.ofert||0,'pozycji','#16a34a')}
+  ${my?kpi('emoji_events','% najtańszych ofert',my.win_rate+'%',my.wygrane+'/'+my.starty+' otwarć (sama cena)','#d35400'):kpi('emoji_events','% najtańszych ofert','—','brak danych','#d35400')}
+ </div>
+ <section class="bg-surface border border-outline-variant rounded-xl shadow-ambient overflow-hidden">
+  <div class="p-4 border-b border-outline-variant flex items-start justify-between gap-4">
+   <p class="text-xs text-on-surface-variant flex-1">Profil cenowy = mediana odchyłki od kwoty przeznaczonej. Wiarygodność rośnie z liczbą startów (1=brak profilu, 5+=twardy). „Tańsi od nas" = ile razy w bezpośrednim pojedynku złożyli niższą ofertę niż WSK. <b>KRD</b> = zadłużenie/rzetelność płatnicza (protokół Chase, sprawdzenie po NIP z otwarcia).</p>
+   <button onclick="krdSprawdzKonkurencje()" class="pill text-xs whitespace-nowrap px-3 py-1.5 bg-primary/10 text-primary hover:bg-primary/20 transition flex items-center gap-1" title="Sprawdza w KRD firmy z NIP, które nie są jeszcze w cache. Każda nowa firma = 1 sprawdzenie z pakietu KRD.">
+    <span class="material-symbols-outlined text-[16px]">verified_user</span>Sprawdź w KRD${doKrd?` (${doKrd})`:''}</button></div>
+  <div class="overflow-x-auto"><table class="dtable w-full text-sm text-left">
+   <thead><tr class="text-[11px] uppercase tracking-wide text-on-surface-variant">
+    <th class="p-3">Firma</th><th class="p-3 text-center">Starty</th><th class="p-3 text-center" title="Ile razy firma złożyła NAJTAŃSZĄ ofertę na otwarciu — to nie zwycięstwo w postępowaniu (o nim decydują też kryteria pozacenowe)">Najtańsza (×)</th>
+    <th class="p-3">Profil cenowy</th><th class="p-3 text-right">Mediana vs budżet</th>
+    <th class="p-3 text-center">Pojedynki z nami</th><th class="p-3">Wiarygodność</th><th class="p-3" title="Zadłużenie i rzetelność płatnicza z KRD (protokół Chase)">KRD</th></tr></thead>
+   <tbody>${d.firmy.map(f=>`
+    <tr onclick="go('konkurencjaFirma','${esc(f.id)}')" class="border-b border-outline-variant cursor-pointer hover:bg-surface-container-low transition ${f.to_my?'bg-secondary/5':''}">
+     <td class="p-3"><div class="font-medium ${f.to_my?'text-secondary':'text-primary'}">${esc(f.nazwa)} ${f.to_my?'<span class="pill text-[10px] bg-secondary/10 text-secondary">MY</span>':''}</div>
+      <div class="text-[11px] text-on-surface-variant">${esc((f.miejscowosci||[]).join(', ')||'—')}</div></td>
+     <td class="p-3 text-center tnum">${f.starty}</td>
+     <td class="p-3 text-center tnum">${f.wygrane} <span class="text-on-surface-variant">(${f.win_rate}%)</span></td>
+     <td class="p-3">${klasaPill(f.profil_cenowy)}</td>
+     <td class="p-3 text-right">${odchBadge(f.mediana_odch_kwota)}</td>
+     <td class="p-3 text-center">${f.to_my?'<span class="text-on-surface-variant">—</span>':`${f.h2h_z_nami} <span class="text-[11px] text-on-surface-variant">(tańsi ${f.h2h_tanszy_od_nas}×)</span>`}</td>
+     <td class="p-3"><span class="text-xs ${f.wiarygodnosc.kod==='PEWNY'||f.wiarygodnosc.kod==='WIARYGODNY'?'text-primary':'text-on-surface-variant'}" title="${esc(f.wiarygodnosc.opis)}">${esc(f.wiarygodnosc.kod)}</span></td>
+     <td class="p-3">${krdPill(f.krd)}</td></tr>`).join('')||'<tr><td colspan=8 class="p-8 text-center text-on-surface-variant">Brak danych — pojawią się po otwarciach ofert.</td></tr>'}</tbody></table></div></section>`;
+};
+
+VIEWS.konkurencjaFirma=async(app,fid)=>{
+ const d=await jget('/api/konkurencja/firma/'+encodeURIComponent(fid));
+ if(!d||d.error){app.innerHTML='<div class="text-error p-6">Nie znaleziono firmy.</div>';return;}
+ const meta=(d.lista_firm_meta||[]).find(f=>f.id===fid)||{};
+ app.innerHTML=`
+ <div class="mb-4 text-sm text-on-surface-variant flex items-center gap-1">
+  <a onclick="go('konkurencja')" class="hover:text-secondary cursor-pointer">Konkurencja</a>
+  <span class="material-symbols-outlined text-[16px]">chevron_right</span><span class="text-primary">${esc(d.nazwa)}</span></div>
+ <div class="mb-6"><h2 class="text-3xl font-extrabold ${d.to_my?'text-secondary':'text-primary'}">${esc(d.nazwa)} ${d.to_my?'<span class="pill text-xs bg-secondary/10 text-secondary">TO MY</span>':''}</h2>
+  <p class="text-on-surface-variant">${meta.profil_cenowy?'Profil cenowy: ':''}${klasaPill(meta.profil_cenowy)} ${meta.wiarygodnosc?'· '+esc(meta.wiarygodnosc.kod):''}</p>
+  ${d.to_my?'':`<div class="mt-2 flex items-center gap-2 flex-wrap text-sm">
+   <span class="text-on-surface-variant">KRD:</span> ${krdPill(d.krd)}
+   ${d.nip?`<span class="text-[11px] text-on-surface-variant">NIP ${esc(d.nip)}</span>
+   <button onclick="krdSprawdzFirme('${esc(fid)}',${d.krd&&d.krd.sprawdzony})" class="pill text-[11px] px-2 py-0.5 bg-primary/10 text-primary hover:bg-primary/20 transition">${d.krd&&d.krd.sprawdzony?'Odśwież w KRD':'Sprawdź w KRD'}</button>`:'<span class="text-[11px] text-on-surface-variant">brak NIP w ofertach</span>'}
+  </div>`}</div>
+ <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  ${kpi('flag','Startów',meta.starty||0,'przetargów','#0058be')}
+  ${kpi('emoji_events','Najtańsza (×)',(meta.wygrane||0)+' ('+(meta.win_rate||0)+'%)','najtańsza oferta na otwarciu','#16a34a')}
+  ${kpi('trending_up','Mediana vs budżet',(meta.mediana_odch_kwota!=null?(meta.mediana_odch_kwota>0?'+':'')+meta.mediana_odch_kwota+'%':'—'),'odchyłka','#d35400')}
+  ${kpi('sports_kabaddi','Pojedynki z nami',(meta.h2h_z_nami||0),'tańsi '+(meta.h2h_tanszy_od_nas||0)+'×','#0d2b4e')}
+ </div>
+ <section class="bg-surface border border-outline-variant rounded-xl shadow-ambient overflow-hidden">
+  <div class="overflow-x-auto"><table class="dtable w-full text-sm text-left">
+   <thead><tr class="text-[11px] uppercase tracking-wide text-on-surface-variant">
+    <th class="p-3">Przetarg</th><th class="p-3">Zamawiający</th><th class="p-3 text-right">Cena oferty</th>
+    <th class="p-3 text-right">vs budżet</th><th class="p-3 text-right">vs my</th><th class="p-3 text-center">Pozycja</th><th class="p-3">Klasa</th></tr></thead>
+   <tbody>${d.starty.map(s=>`
+    <tr onclick="go('postepowanie',${Number(s.projekt_id)})" class="border-b border-outline-variant cursor-pointer hover:bg-surface-container-low transition">
+     <td class="p-3 font-medium text-primary">${esc(s.przetarg||'—')}</td>
+     <td class="p-3 text-on-surface-variant text-xs">${esc(s.zamawiajacy||'—')}</td>
+     <td class="p-3 text-right tnum font-semibold">${s.cena_brutto?s.cena_brutto.toLocaleString('pl-PL',{maximumFractionDigits:0})+' zł':'—'}</td>
+     <td class="p-3 text-right">${odchBadge(s.odch_kwota)}</td>
+     <td class="p-3 text-right">${odchBadge(s.odch_nasza,true)}</td>
+     <td class="p-3 text-center tnum">${s.pozycja?s.pozycja+'/'+s.liczba_ofert:'—'} ${s.wygral?'<span title="najtańsza oferta na otwarciu — nie zwycięstwo w postępowaniu">🥇</span>':''}${s.cena_watpliwa?' <span title="cena odbiega skrajnie od mediany — możliwy błąd OCR/cena pozycyjna" class="text-amber-600">⚠</span>':''}</td>
+     <td class="p-3">${klasaPill(s.klasa)}</td></tr>`).join('')}</tbody></table></div></section>`;
 };
 
 // ================= GOOGLE DRIVE (moduł platformy)
@@ -875,7 +2220,10 @@ VIEWS.materialy=async(app)=>{
  await loadAudits();
  const h=location.hash.slice(1).split('/');
  const view=VIEWS[h[0]]?h[0]:'pulpit';
- go(view,h[1]);
+ // fix 2026-07-03: render wprost (bez go()) — go() pushowałby wpis historii na starcie,
+ // przez co pierwszy WSTECZ nie wychodził z apki. Ustaw kanoniczny hash bez nowego wpisu.
+ if(location.hash.slice(1)!==(view+(h[1]?('/'+h[1]):''))) history.replaceState(null,'',location.pathname+location.search+'#'+view+(h[1]?('/'+h[1]):''));
+ render(view,h[1]);
 })();
 </script>
 </body></html>

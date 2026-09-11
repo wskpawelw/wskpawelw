@@ -8,12 +8,13 @@ Analizator dokumentacji przetargowej WSK — backend (FastAPI).
 
 DANE POUFNE — tylko 127.0.0.1; publicznie wyłącznie za Cloudflare Access (@wskonsorcjum.pl).
 """
-import os, sys, json, glob, time, uuid, threading, subprocess, queue, re, html
+import os, sys, json, glob, time, uuid, threading, subprocess, queue, re, html, shutil
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse, PlainTextResponse
 
 BASE   = "/home/wskpawelw/audyt"
 OUTPUTS= os.path.join(BASE, "outputs")
+LOGS   = os.path.join(BASE, "logs")
 STATIC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
 sys.path.insert(0, os.path.join(BASE, "scripts"))
 import dashboard as D   # reuse parse()
@@ -23,9 +24,19 @@ app = FastAPI(title="Analizator przetargów WSK")
 # ---------------------------------------------------------------- audyty (realne dane)
 def audit_id(path): return os.path.splitext(os.path.basename(path))[0]
 
+def _audit_xlsx_files():
+    """Collect all audit xlsx files regardless of case (AUDYT_*, audyt_*, Audyt_*)."""
+    seen = set()
+    for pattern in ("AUDYT_*.xlsx", "audyt_*.xlsx", "Audyt_*.xlsx"):
+        for p in glob.glob(os.path.join(OUTPUTS, pattern)):
+            rp = os.path.realpath(p)
+            if rp not in seen:
+                seen.add(rp)
+                yield p
+
 def list_audits():
     items=[]
-    for p in sorted(glob.glob(os.path.join(OUTPUTS,"AUDYT_*.xlsx")), key=os.path.getmtime, reverse=True):
+    for p in sorted(_audit_xlsx_files(), key=os.path.getmtime, reverse=True):
         try:
             d=D.parse(p)
             rek=d["meta"].get("rekomendacja","")
@@ -105,6 +116,128 @@ def extract_folder_id(url):
     m=DRIVE_RE.search(url or "")
     return m.group(1) if m else (url.strip() if url else "")
 
+# ---------------------------------------------------------------- silnik (claude headless)
+# dostrojenie 2026-08-12: audyt CKiK Gościno przy OCR 108 stron rysunków rozdął
+# proces silnika do 28 GB RSS (vision kumuluje obrazy w RAM CLI) → globalny OOM
+# killer ubił silnik. Że proces siedział w cgroupie siwz-backend.service
+# (OOMPolicy=stop + KillMode=control-group), systemd ubił i zrestartował CAŁĄ
+# platformę, a backend pokazał tylko mylące "kod 143 — sprawdź dostęp do Drive".
+# Teraz: własny scope z limitem pamięci (OOM ubija wyłącznie silnik), trwały log
+# per job i uczciwa diagnoza kodu wyjścia. Patrz [[project_analizator_platforma]].
+ENGINE_MEM_MAX  = os.environ.get("AUDYT_MEM_MAX",  "20G")
+ENGINE_MEM_HIGH = os.environ.get("AUDYT_MEM_HIGH", "14G")
+ENGINE_SWAP_MAX = os.environ.get("AUDYT_SWAP_MAX", "1G")
+# dostrojenie 2026-08-12: model byl zaszyty w trzech miejscach, wiec przy wyczerpanym limicie
+# konta nie dalo sie dokonczyc audytu tanszym modelem bez edycji kodu. Domyslnie bez zmian
+# (opus-5 — audyt przetargowy potrzebuje najlepszego vision), przelaczasz przez AUDYT_MODEL.
+MODEL_CONFIG = os.path.join(BASE, "config", "audit_model.json")
+MODEL_ALIASES = {
+    "opus": {"provider": "claude", "model": "claude-opus-5"},
+    "gemini": {"provider": "gemini", "model": "audyt-flash-lite"},
+    "gpt": {"provider": "codex", "model": "gpt-5.6-sol"},
+}
+
+def engine_config():
+    """Konfiguracja czytana dla każdego joba, więc zmiana nie wymaga restartu."""
+    fallback = os.environ.get("AUDYT_MODEL", "opus")
+    selected = fallback
+    try:
+        with open(MODEL_CONFIG, encoding="utf-8") as fh:
+            selected = (json.load(fh).get("model") or fallback).strip().lower()
+    except (FileNotFoundError, ValueError, TypeError, OSError):
+        pass
+    cfg = MODEL_ALIASES.get(selected)
+    if cfg:
+        return selected, cfg
+    return selected, {"provider": "claude", "model": selected}
+
+def claude_bin():
+    return os.environ.get("CLAUDE_BIN") or shutil.which("claude") or "/home/wskpawelw/.local/bin/claude"
+
+def gemini_bin():
+    return os.environ.get("GEMINI_BIN") or shutil.which("gemini") or "/home/wskpawelw/.nvm/versions/node/v22.22.2/bin/gemini"
+
+def codex_bin():
+    return os.environ.get("CODEX_BIN") or shutil.which("codex") or "/home/wskpawelw/.local/bin/codex"
+
+_scope_state={"ok":None}
+def scope_ok():
+    """Czy systemd-run --user --scope z limitem RAM faktycznie działa (D-Bus + delegacja
+    cgroup). Sprawdzane raz — bez tego silnik odpalamy po staremu, byle w ogóle ruszył."""
+    if _scope_state["ok"] is None:
+        try:
+            _scope_state["ok"] = shutil.which("systemd-run") is not None and subprocess.run(
+                ["systemd-run","--user","--scope","--quiet","--collect",
+                 "-p","MemoryMax=64M","/bin/true"],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=15).returncode==0
+        except Exception:
+            _scope_state["ok"]=False
+    return _scope_state["ok"]
+
+def engine_cmd(prompt, jid):
+    """Wybrany silnik headless w osobnym cgroup scope."""
+    alias, cfg = engine_config()
+    provider, model = cfg["provider"], cfg["model"]
+    if provider == "gemini":
+        base=[gemini_bin(), "-p", prompt, "--output-format", "stream-json",
+              "--model", model, "--sandbox", "--approval-mode", "yolo",
+              "--include-directories", BASE]
+    elif provider == "codex":
+        base=[codex_bin(), "exec", "--json", "--model", model,
+              "--sandbox", "workspace-write", "-C", "/home/wskpawelw",
+              "--add-dir", BASE, "--skip-git-repo-check", prompt]
+    else:
+        base=[claude_bin(),"-p",prompt,"--output-format","stream-json","--verbose",
+              "--dangerously-skip-permissions","--model",model]
+    if scope_ok():
+        return ["systemd-run","--user","--scope","--quiet","--collect",
+                f"--unit=audyt-silnik-{jid}",
+                "-p",f"MemoryMax={ENGINE_MEM_MAX}",
+                "-p",f"MemoryHigh={ENGINE_MEM_HIGH}",
+                # bez tego pęczniejący silnik wypycha do swapu (3,8 GB na serwerze)
+                # i zamula wszystko inne, zamiast po prostu paść na swoim limicie
+                "-p",f"MemorySwapMax={ENGINE_SWAP_MAX}", *base]
+    return base
+
+def engine_env():
+    """Środowisko providera bez zapisywania lub logowania sekretów."""
+    env = dict(os.environ)
+    _, cfg = engine_config()
+    if cfg["provider"] == "claude":
+        env.pop("ANTHROPIC_API_KEY", None)  # CLI używa subskrypcji OAuth
+        # incydent 2026-09-11 (wymiennikownia #47): agent główny odpalił subagenta
+        # audytu z run_in_background=true, a `claude -p` po 600 s ubija zadania w tle
+        # ("Background tasks still running after 600s; terminating") → rc=0 bez xlsx.
+        # 0 = czekaj na zadania w tle bez limitu.
+        env["CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS"] = "0"
+    elif cfg["provider"] == "gemini":
+        # Backend historycznie używa GOOGLE_API_KEY; Gemini CLI oczekuje
+        # GEMINI_API_KEY dla trybu AI Studio.
+        if not env.get("GEMINI_API_KEY") and env.get("GOOGLE_API_KEY"):
+            env["GEMINI_API_KEY"] = env["GOOGLE_API_KEY"]
+    return env
+
+def engine_log(jid):
+    """Trwały log surowego stdout silnika — JOBS ginie przy restarcie backendu."""
+    try:
+        os.makedirs(LOGS, exist_ok=True)
+        return open(os.path.join(LOGS, f"job_{jid}.log"), "a", encoding="utf-8", buffering=1)
+    except Exception:
+        return None
+
+def rc_opis(rc):
+    """Czytelna diagnoza kodu wyjścia — bez zgadywania 'to pewnie Drive'."""
+    if rc in (-9, 137):
+        return (f"silnik ZABITY przez OOM — przekroczył limit pamięci ({ENGINE_MEM_MAX}). "
+                f"Zwykle OCR zbyt wielu rysunków w jednym przebiegu; podziel dokumentację "
+                f"albo podnieś AUDYT_MEM_MAX")
+    if rc in (-15, 143):
+        return ("silnik dostał SIGTERM (restart usługi backendu / ręczne zatrzymanie / OOM "
+                "w cgroupie nadrzędnej) — audyt przerwany w połowie")
+    if rc in (-6, 134):
+        return "silnik przerwany (abort) — zajrzyj do logu joba"
+    return f"kod {rc}"
+
 # --- tryb DEMO: płynny przebieg etapów (do podglądu UX, bez 20-min realnego runu) ---
 def run_demo(jid, url):
     jset(jid, log_add=f"INFO\tStart analizy folderu: {url}")
@@ -138,18 +271,27 @@ def stage_for(text):
 def run_real(jid, url):
     fid=extract_folder_id(url)
     jset(jid, log_add=f"INFO\tStart pełnej analizy. Folder ID: {fid}")
-    before=set(glob.glob(os.path.join(OUTPUTS,"AUDYT_*.xlsx")))
-    prompt=(f"Użyj subagenta audyt-przetargowy. Zrób pełny audyt przetargowy folderu Google Drive: "
+    before=set(_audit_xlsx_files())
+    prompt=(f"Użyj subagenta audyt-przetargowy — uruchom go SYNCHRONICZNIE (run_in_background=false) "
+            f"i czekaj na jego wynik; NIE kończ swojej tury, dopóki plik xlsx audytu nie istnieje w {OUTPUTS}/. "
+            f"Zrób pełny audyt przetargowy folderu Google Drive: "
             f"{url} . Bez żadnych halucynacji — ilości i ceny wyłącznie z dokumentów/katalogów. "
+            f"Zindeksuj i przeczytaj WSZYSTKIE pliki ze WSZYSTKICH podfolderów (rekurencyjnie, też ZIP-y); "
+            f"pytanie do zamawiającego wolno zadać DOPIERO po przeszukaniu całej dokumentacji — "
+            f"jeśli parametr jest w którymkolwiek pliku/rysunku, użyj go zamiast pytać. "
             f"Wygeneruj xlsx do {OUTPUTS}/ i przelicz formuły (recalc).")
-    import shutil
-    claude_bin=os.environ.get("CLAUDE_BIN") or shutil.which("claude") or "/home/wskpawelw/.local/bin/claude"
-    cmd=[claude_bin,"-p",prompt,"--output-format","stream-json","--verbose",
-         "--dangerously-skip-permissions","--model","opus"]
-    jset(jid, stage=STAGES[0][0], pct=3, log_add="INFO\tUruchamiam silnik (claude headless)…")
+    cmd=engine_cmd(prompt, jid)
+    logf=engine_log(jid)
+    jset(jid, stage=STAGES[0][0], pct=3,
+         log_add=f"INFO\tUruchamiam silnik (claude headless, limit RAM {ENGINE_MEM_MAX}). "
+                 f"Log: {LOGS}/job_{jid}.log")
+    # dostrojenie 2026-06-10: backend ładuje ANTHROPIC_API_KEY z .env → headless
+    # płacił kredytami API ("Credit balance is too low"). Usuwamy klucz ze środowiska
+    # procesu, żeby claude CLI użył subskrypcji (OAuth z ~/.claude/.credentials.json).
+    env=engine_env()
     try:
         proc=subprocess.Popen(cmd, cwd=BASE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                              text=True, bufsize=1)
+                              text=True, bufsize=1, env=env)
     except Exception as e:
         jset(jid, done=True, ok=False, log_add=f"ERR\tNie udało się uruchomić silnika: {e}")
         return
@@ -157,6 +299,7 @@ def run_real(jid, url):
     for line in proc.stdout:
         line=line.strip()
         if not line: continue
+        if logf: logf.write(line+"\n")
         try: ev=json.loads(line)
         except Exception: continue
         typ=ev.get("type")
@@ -186,15 +329,23 @@ def run_real(jid, url):
         elif typ=="result":
             break
     rc=proc.wait()
-    after=set(glob.glob(os.path.join(OUTPUTS,"AUDYT_*.xlsx")))
+    if logf:
+        logf.write(f"\n--- silnik zakończył: rc={rc} ({rc_opis(rc)}) ---\n"); logf.close()
+    after=set(_audit_xlsx_files())
     new=sorted(after-before, key=os.path.getmtime, reverse=True)
     if new:
         rid=audit_id(new[0])
         jset(jid, stage="Gotowe", pct=100, done=True, ok=True, result_id=rid,
              log_add=f"OK\tAudyt gotowy: {os.path.basename(new[0])}")
+    elif rc==0:
+        # ok=False: bez pliku audyt NIE powstał — front nie może "zgadywać" najnowszego
+        # audytu (incydent 2026-09-11: powiązał Dygowo z #47).
+        jset(jid, stage="Bez pliku", pct=100, done=True, ok=False,
+             log_add=f"ERR\tSilnik zakończył (kod 0), ale NIE powstał nowy plik xlsx — audyt nie został "
+                     f"wygenerowany, nic nie powiązano. Sprawdź {LOGS}/job_{jid}.log i dostęp do Drive.")
     else:
-        jset(jid, stage="Zakończono", pct=100, done=True, ok=(rc==0),
-             log_add=f"{'OK' if rc==0 else 'ERR'}\tSilnik zakończył (kod {rc}). Nie wykryto nowego pliku — sprawdź logi/dostęp do Drive.")
+        jset(jid, stage="Przerwane", pct=100, done=True, ok=False,
+             log_add=f"ERR\tAudyt przerwany: {rc_opis(rc)}. Log: {LOGS}/job_{jid}.log")
 
 def run_update(jid, aid, url):
     """Tryb przyrostowy: dograj nowe dokumenty do istniejącego audytu (nie od zera)."""
@@ -204,24 +355,38 @@ def run_update(jid, aid, url):
         jset(jid, done=True, ok=False, log_add="ERR\tBrak istniejącego pliku audytu do aktualizacji."); return
     mtime0=os.path.getmtime(path)
     jset(jid, log_add=f"INFO\tStart aktualizacji {aid}. Folder ID: {fid}")
-    prompt=(f"Użyj subagenta audyt-przetargowy w TRYBIE AKTUALIZACJI. "
+    prompt=(f"Użyj subagenta audyt-przetargowy w TRYBIE AKTUALIZACJI — uruchom go SYNCHRONICZNIE "
+            f"(run_in_background=false) i czekaj na wynik; nie kończ tury przed zapisaniem pliku. "
             f"Istnieje już audyt: {path} . Folder Google Drive z dokumentacją: {url} . "
             f"Dograj TYLKO nowe/zmienione dokumenty do istniejącego pliku (nie rób audytu od nowa): "
             f"oznacz odpowiedzi na pytania, zaktualizuj termin/zakres/wadium jeśli się zmieniły, "
-            f"dodaj zakładkę ZZ_AKTUALIZACJA z opisem co nowego. Nadpisz ten sam plik i przelicz formuły (recalc).")
-    import shutil
-    claude_bin=os.environ.get("CLAUDE_BIN") or shutil.which("claude") or "/home/wskpawelw/.local/bin/claude"
-    cmd=[claude_bin,"-p",prompt,"--output-format","stream-json","--verbose",
-         "--dangerously-skip-permissions","--model","opus"]
-    jset(jid, stage=STAGES[0][0], pct=3, log_add="INFO\tUruchamiam silnik (tryb aktualizacji)…")
+            f"dodaj zakładkę ZZ_AKTUALIZACJA z opisem co nowego. Nowe pytania do zamawiającego wolno dodać "
+            f"DOPIERO po sprawdzeniu, że odpowiedzi nie ma w żadnym dokumencie (też w starych plikach i OCR rysunków). "
+            # dostrojenie 2026-06-12: aktualizacja WINDY policzyła deltę +149k, ale
+            # wpisała ją tylko jako baner — dashboard czyta LICZBY, więc widełki
+            # zostały stare. Liczby mają być aktualizowane w obu miejscach.
+            f"ŻELAZNA ZASADA WYCENY: jeśli nowe dokumenty zmieniają zakres lub ceny, ZAKTUALIZUJ LICZBY "
+            f"(nie tylko dopisek/baner!): (1) w zakładce 25_KALKULACJA_WSTEPNA dodaj wiersz grupy dla nowych "
+            f"zakresów i przelicz wiersz RAZEM, (2) w 01_STRESZCZENIE_ZARZADCZE zaktualizuj linię "
+            f"'WARTOŚĆ SZACUNKOWA INWESTYCJI: X–Y mln PLN netto' — dashboard parsuje te dwa miejsca. "
+            f"Starą wartość zostaw w dopisku '[było: ...]'. "
+            f"Nadpisz ten sam plik i przelicz formuły (recalc).")
+    cmd=engine_cmd(prompt, jid)
+    logf=engine_log(jid)
+    jset(jid, stage=STAGES[0][0], pct=3,
+         log_add=f"INFO\tUruchamiam silnik (tryb aktualizacji, limit RAM {ENGINE_MEM_MAX}). "
+                 f"Log: {LOGS}/job_{jid}.log")
+    # jak w run_real: bez ANTHROPIC_API_KEY → subskrypcja zamiast kredytów API
+    env=engine_env()
     try:
         proc=subprocess.Popen(cmd, cwd=BASE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                              text=True, bufsize=1)
+                              text=True, bufsize=1, env=env)
     except Exception as e:
         jset(jid, done=True, ok=False, log_add=f"ERR\tNie udało się uruchomić silnika: {e}"); return
     for line in proc.stdout:
         line=line.strip()
         if not line: continue
+        if logf: logf.write(line+"\n")
         try: ev=json.loads(line)
         except Exception: continue
         typ=ev.get("type")
@@ -243,13 +408,67 @@ def run_update(jid, aid, url):
         elif typ=="result":
             break
     rc=proc.wait()
+    if logf:
+        logf.write(f"\n--- silnik zakończył: rc={rc} ({rc_opis(rc)}) ---\n"); logf.close()
     mtime1=os.path.getmtime(path) if os.path.exists(path) else mtime0
     if mtime1>mtime0:
         jset(jid, stage="Gotowe", pct=100, done=True, ok=True, result_id=aid,
              log_add="OK\tAudyt zaktualizowany (dograne nowe dokumenty).")
+    elif rc==0:
+        jset(jid, stage="Zakończono", pct=100, done=True, ok=True, result_id=aid,
+             log_add="OK\tSilnik zakończył bez błędu, plik bez zmian — możliwe że brak nowych dokumentów w folderze.")
     else:
-        jset(jid, stage="Zakończono", pct=100, done=True, ok=(rc==0), result_id=aid,
-             log_add=f"{'OK' if rc==0 else 'ERR'}\tSilnik zakończył (kod {rc}). Plik bez zmian — możliwe że brak nowych dokumentów w folderze.")
+        jset(jid, stage="Przerwane", pct=100, done=True, ok=False, result_id=aid,
+             log_add=f"ERR\tAktualizacja przerwana: {rc_opis(rc)}. Log: {LOGS}/job_{jid}.log")
+
+def run_paczka(jid, prompt, wynik_dir):
+    """Paczka ofertowa: agent wypełnia załączniki SWZ danymi firm i odkłada do Drive."""
+    jset(jid, log_add=f"INFO\tStart przygotowania paczki ofertowej → {wynik_dir}")
+    os.makedirs(wynik_dir, exist_ok=True)
+    przed=set(glob.glob(os.path.join(wynik_dir,"*")))
+    cmd=engine_cmd(prompt, jid)
+    logf=engine_log(jid)
+    jset(jid, stage="Czytanie SWZ i załączników", pct=3,
+         log_add=f"INFO\tSilnik w cgroup scope (limit RAM {ENGINE_MEM_MAX}). Log: {LOGS}/job_{jid}.log")
+    env=engine_env()
+    try:
+        proc=subprocess.Popen(cmd, cwd=BASE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                              text=True, bufsize=1, env=env)
+    except Exception as e:
+        jset(jid, done=True, ok=False, log_add=f"ERR\tNie udało się uruchomić silnika: {e}"); return
+    for line in proc.stdout:
+        line=line.strip()
+        if not line: continue
+        if logf: logf.write(line+"\n")
+        try: ev=json.loads(line)
+        except Exception: continue
+        typ=ev.get("type")
+        if typ=="assistant":
+            for c in ev.get("message",{}).get("content",[]):
+                if c.get("type")=="tool_use":
+                    with LOCK: cur=JOBS[jid]["pct"]
+                    jset(jid, pct=min(96, cur+2))
+                    inp=c.get("input",{})
+                    hint=inp.get("file_path") or inp.get("command","") or inp.get("query","")
+                    jset(jid, log_add=f"TOOL\t{c.get('name','tool')}: {str(hint)[:90]}")
+                elif c.get("type")=="text" and c.get("text","").strip():
+                    jset(jid, log_add="MSG\t"+c["text"].strip()[:140])
+        elif typ=="result":
+            break
+    rc=proc.wait()
+    if logf:
+        logf.write(f"\n--- silnik zakończył: rc={rc} ({rc_opis(rc)}) ---\n"); logf.close()
+    nowe=set(glob.glob(os.path.join(wynik_dir,"*")))-przed
+    if nowe:
+        jset(jid, stage="Gotowe", pct=100, done=True, ok=True,
+             log_add=f"OK\tPaczka gotowa: {len(nowe)} plików w {wynik_dir}")
+    elif rc==0:
+        jset(jid, stage="Zakończono", pct=100, done=True, ok=True,
+             log_add=f"OK\tSilnik zakończył bez błędu, ale folder pusty — sprawdź {LOGS}/job_{jid}.log i Drive.")
+    else:
+        jset(jid, stage="Przerwane", pct=100, done=True, ok=False,
+             log_add=f"ERR\tPaczka przerwana: {rc_opis(rc)}. Log: {LOGS}/job_{jid}.log")
+
 
 @app.post("/api/analyze")
 async def api_analyze(req: Request):
