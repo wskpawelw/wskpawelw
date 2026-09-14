@@ -502,8 +502,11 @@ def _link_result_to_project(jid: str, url: str, pid: int):
         print("link result err", e, file=sys.stderr)
 
 
-def _run_then_link(tgt, jid: str, url: str, pid):
-    tgt(jid, url)
+def _run_then_link(tgt, jid: str, url: str, pid, hint=None):
+    if hint and tgt is ENG.run_real:
+        tgt(jid, url, hint)
+    else:
+        tgt(jid, url)
     _link_result_to_project(jid, url, pid)
 
 
@@ -516,13 +519,14 @@ async def api_analyze(request: Request, user=Depends(get_current_user)):
         pid = int(body.get("projekt_id") or 0) or None
     except (TypeError, ValueError):
         pid = None
+    hint = (str(body.get("hint") or "")).strip()[:2000] or None   # wskazówka operatora dla silnika
     if not url:
         return JSONResponse({"error": "Podaj link do folderu Google Drive."}, status_code=400)
     jid = uuid.uuid4().hex[:12]
     ENG.jset(jid, pct=0, stage="Inicjalizacja", started=int(time.time()), mode=mode, url=url,
              projekt_id=pid)
     tgt = ENG.run_real if mode == "real" else ENG.run_demo
-    threading.Thread(target=_run_then_link, args=(tgt, jid, url, pid), daemon=True).start()
+    threading.Thread(target=_run_then_link, args=(tgt, jid, url, pid, hint), daemon=True).start()
     return JSONResponse({"job_id": jid, "mode": mode, "projekt_id": pid})
 
 # SSE — EventSource nie umie nagłówków, więc token w query (walidowany ręcznie)

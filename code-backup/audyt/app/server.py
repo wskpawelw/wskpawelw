@@ -268,9 +268,10 @@ def stage_for(text):
         if rx.search(text or ""): return idx
     return None
 
-def run_real(jid, url):
+def run_real(jid, url, hint=None):
     fid=extract_folder_id(url)
     jset(jid, log_add=f"INFO\tStart pełnej analizy. Folder ID: {fid}")
+    if hint: jset(jid, log_add=f"INFO\tWskazówka operatora: {str(hint)[:200]}")
     before=set(_audit_xlsx_files())
     prompt=(f"Użyj subagenta audyt-przetargowy — uruchom go SYNCHRONICZNIE (run_in_background=false) "
             f"i czekaj na jego wynik; NIE kończ swojej tury, dopóki plik xlsx audytu nie istnieje w {OUTPUTS}/. "
@@ -280,6 +281,10 @@ def run_real(jid, url):
             f"pytanie do zamawiającego wolno zadać DOPIERO po przeszukaniu całej dokumentacji — "
             f"jeśli parametr jest w którymkolwiek pliku/rysunku, użyj go zamiast pytać. "
             f"Wygeneruj xlsx do {OUTPUTS}/ i przelicz formuły (recalc).")
+    if hint:
+        # dostrojenie 2026-09-14: opcjonalna wskazówka operatora (np. „OCR już gotowe w
+        # katalogu roboczym X — nie pobieraj ponownie") przekazywana z /analyze
+        prompt+=f" WSKAZÓWKA OPERATORA (przekaż subagentowi dosłownie): {str(hint)[:2000]}"
     cmd=engine_cmd(prompt, jid)
     logf=engine_log(jid)
     jset(jid, stage=STAGES[0][0], pct=3,
