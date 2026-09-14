@@ -133,14 +133,19 @@ ENGINE_SWAP_MAX = os.environ.get("AUDYT_SWAP_MAX", "1G")
 MODEL_CONFIG = os.path.join(BASE, "config", "audit_model.json")
 MODEL_ALIASES = {
     "opus": {"provider": "claude", "model": "claude-opus-5"},
-    "gemini": {"provider": "gemini", "model": "audyt-flash-lite"},
+    "gemini": {"provider": "gemini", "model": os.environ.get("AUDYT_GEMINI_MODEL", "gemini-2.5-pro")},
     "gpt": {"provider": "codex", "model": "gpt-5.6-sol"},
 }
 
-def engine_config():
-    """Konfiguracja czytana dla każdego joba, więc zmiana nie wymaga restartu."""
+def engine_config(alias=None):
+    """Konfiguracja czytana dla każdego joba, więc zmiana nie wymaga restartu.
+    `alias` (dostrojenie 2026-09-14) wymusza konkretny silnik — używane przez łańcuch
+    awaryjny po limicie Claude (patrz FALLBACK_CHAIN)."""
     fallback = os.environ.get("AUDYT_MODEL", "opus")
     selected = fallback
+    if alias:
+        cfg = MODEL_ALIASES.get(alias)
+        return (alias, cfg) if cfg else (alias, {"provider": "claude", "model": alias})
     try:
         with open(MODEL_CONFIG, encoding="utf-8") as fh:
             selected = (json.load(fh).get("model") or fallback).strip().lower()
@@ -174,9 +179,9 @@ def scope_ok():
             _scope_state["ok"]=False
     return _scope_state["ok"]
 
-def engine_cmd(prompt, jid):
-    """Wybrany silnik headless w osobnym cgroup scope."""
-    alias, cfg = engine_config()
+def engine_cmd(prompt, jid, alias=None):
+    """Wybrany silnik headless w osobnym cgroup scope (alias= wymusza silnik)."""
+    alias, cfg = engine_config(alias)
     provider, model = cfg["provider"], cfg["model"]
     if provider == "gemini":
         base=[gemini_bin(), "-p", prompt, "--output-format", "stream-json",
@@ -191,7 +196,7 @@ def engine_cmd(prompt, jid):
               "--dangerously-skip-permissions","--model",model]
     if scope_ok():
         return ["systemd-run","--user","--scope","--quiet","--collect",
-                f"--unit=audyt-silnik-{jid}",
+                f"--unit=audyt-silnik-{jid}" + (f"-{alias}" if alias in MODEL_ALIASES and alias!=engine_config()[0] else ""),
                 "-p",f"MemoryMax={ENGINE_MEM_MAX}",
                 "-p",f"MemoryHigh={ENGINE_MEM_HIGH}",
                 # bez tego pęczniejący silnik wypycha do swapu (3,8 GB na serwerze)
@@ -199,10 +204,10 @@ def engine_cmd(prompt, jid):
                 "-p",f"MemorySwapMax={ENGINE_SWAP_MAX}", *base]
     return base
 
-def engine_env():
+def engine_env(alias=None):
     """Środowisko providera bez zapisywania lub logowania sekretów."""
     env = dict(os.environ)
-    _, cfg = engine_config()
+    _, cfg = engine_config(alias)
     if cfg["provider"] == "claude":
         env.pop("ANTHROPIC_API_KEY", None)  # CLI używa subskrypcji OAuth
         # incydent 2026-09-11 (wymiennikownia #47): agent główny odpalił subagenta
@@ -216,6 +221,113 @@ def engine_env():
         if not env.get("GEMINI_API_KEY") and env.get("GOOGLE_API_KEY"):
             env["GEMINI_API_KEY"] = env["GOOGLE_API_KEY"]
     return env
+
+# ---- Łańcuch awaryjny po limicie Claude (dostrojenie 2026-09-14, incydent #47) ----
+# 11.09 audyt wymiennikowni padł po 50 min na „You've hit your monthly spend limit" (429).
+# Paweł: „jak się kończy token na claude, przełącz na gemini". Kolejność z env
+# AUDYT_FALLBACK (domyślnie gemini, potem gpt/codex); pusty string = wyłączone.
+FALLBACK_CHAIN=[a.strip() for a in os.environ.get("AUDYT_FALLBACK","gemini,gpt").split(",") if a.strip()]
+LIMIT_RE=re.compile(r"spend limit|usage limit|rate limit|rate_limit|Credit balance is too low|"
+                    r"monthly limit|quota|hit your", re.I)
+AGENT_MD_SRC="/home/wskpawelw/.claude/agents/audyt-przetargowy.md"
+AGENT_MD_COPY=os.path.join(BASE,"AGENT_AUDYT_PRZETARGOWY.md")
+
+def limit_event(ev):
+    """Czy zdarzenie stream-json Claude oznacza wyczerpany limit/kredyt (nie zwykły błąd
+    narzędzia — tool_result cytujący stary log NIE ma tu odpalać)."""
+    try:
+        t=ev.get("type"); st=ev.get("subtype")
+        if t=="result":
+            if ev.get("api_error_status")==429: return True
+            return bool(ev.get("is_error")) and bool(LIMIT_RE.search(str(ev.get("result") or "")))
+        if t=="system" and st=="rate_limit_event":
+            return (ev.get("rate_limit_info") or {}).get("status")=="rejected"
+        if t=="assistant" and (ev.get("error")=="rate_limit" or ev.get("is_api_error_message")):
+            txt=" ".join(c.get("text","") for c in ev.get("message",{}).get("content",[]) if isinstance(c,dict))
+            return bool(LIMIT_RE.search(txt)) or ev.get("error")=="rate_limit"
+    except Exception:
+        pass
+    return False
+
+def provider_available(alias):
+    """Czy silnik awaryjny ma binarkę i poświadczenia (bez logowania sekretów)."""
+    _, cfg = engine_config(alias)
+    p=cfg["provider"]
+    if p=="gemini":
+        return os.path.exists(gemini_bin()) and bool(os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY"))
+    if p=="codex":
+        return os.path.exists(codex_bin())
+    return os.path.exists(claude_bin())
+
+def workdir_since(ts):
+    """Katalogi robocze w ~/audyt zmienione od startu jobu — podpowiedź dla silnika
+    awaryjnego, żeby nie pobierał/OCR-ował dokumentacji od zera."""
+    out=[]
+    for d in glob.glob(os.path.join(BASE,"*")):
+        if os.path.isdir(d) and os.path.basename(d) not in ("outputs","logs","app","scripts","templates","config","dashboards","oferty","work","backups") \
+           and not os.path.basename(d).startswith(("_","." )) and os.path.getmtime(d)>=ts-5:
+            out.append(d)
+    return sorted(out, key=os.path.getmtime, reverse=True)
+
+def fallback_prompt(url, hint, workdirs):
+    """Prompt niezależny od providera: Gemini/Codex nie mają subagenta Claude, więc
+    dostają kopię instrukcji agenta jako plik do przeczytania i wykonania."""
+    try:
+        shutil.copyfile(AGENT_MD_SRC, AGENT_MD_COPY)
+    except Exception:
+        pass
+    p=(f"Jesteś agentem audytu przetargowego WSK Konsorcjum. PEŁNA instrukcja agenta (persony ekspertów, "
+       f"struktura 53 zakładek xlsx, żelazne zasady formuł/materiałów/pytań) jest w pliku {AGENT_MD_COPY} — "
+       f"najpierw przeczytaj ją CAŁĄ i wykonaj w całości. Helpery openpyxl: {BASE}/_helpers.py, "
+       f"przeliczanie formuł: python3 {BASE}/scripts/recalc.py <plik>. "
+       f"Zadanie: pełny audyt przetargowy folderu Google Drive {url} (pobieranie: rclone, remote gdrive:, "
+       f"--drive-root-folder-id=<ID folderu>). Bez halucynacji — ilości i ceny wyłącznie z dokumentów/katalogów. "
+       f"Przeczytaj WSZYSTKIE pliki ze WSZYSTKICH podfolderów (też ZIP-y); rysunki i skany czytaj jako obrazy. "
+       f"Pytanie do zamawiającego dopiero po przeszukaniu całej dokumentacji. "
+       f"Wynik: xlsx w {OUTPUTS}/ (nazwa AUDYT_<POSTEPOWANIE>_<YYYYMMDD>_v1.xlsx) + recalc. "
+       f"Pracuj do końca bez pytań do użytkownika.")
+    if workdirs:
+        p+=(f" Poprzedni silnik (Claude) przerwał pracę z powodu limitu; jego katalog roboczy z pobraną "
+            f"dokumentacją, renderami stron i wynikami OCR: {workdirs[0]} — WYKORZYSTAJ go (sprawdź kompletność), "
+            f"nie pobieraj i nie OCR-uj od zera.")
+    if hint:
+        p+=f" WSKAZÓWKA OPERATORA: {str(hint)[:2000]}"
+    return p
+
+def run_engine_generic(jid, alias, prompt, logf):
+    """Uruchom dowolny silnik headless i strumieniuj log do jobu (format zdarzeń Gemini/Codex
+    jest inny niż Claude — parsujemy tolerancyjnie). Zwraca kod wyjścia."""
+    cmd=engine_cmd(prompt, jid, alias); env=engine_env(alias)
+    if logf: logf.write(f"\n--- silnik awaryjny {alias}: start ---\n")
+    try:
+        proc=subprocess.Popen(cmd, cwd=BASE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                              text=True, bufsize=1, env=env)
+    except Exception as e:
+        jset(jid, log_add=f"ERR\tNie udało się uruchomić silnika {alias}: {e}"); return -1
+    for line in proc.stdout:
+        line=line.strip()
+        if not line: continue
+        if logf: logf.write(line+"\n")
+        try: ev=json.loads(line)
+        except Exception:
+            jset(jid, log_add="MSG\t"+line[:140]); continue
+        if not isinstance(ev,dict): continue
+        item=ev.get("item") if isinstance(ev.get("item"),dict) else {}
+        txt=(item.get("text") or ev.get("text") or ev.get("content") or ev.get("response") or "")
+        if isinstance(txt,list): txt=" ".join(str(x.get("text","")) if isinstance(x,dict) else str(x) for x in txt)
+        cmdtxt=item.get("command") or item.get("aggregated_output") or ""
+        blob=(str(txt)+" "+str(cmdtxt))[:400]
+        si=stage_for(blob)
+        with LOCK: cur=JOBS[jid]["pct"]
+        if si is not None and si<len(STAGES):
+            name,pct=STAGES[si]; jset(jid, stage=name, pct=max(cur,min(pct,cur+3)))
+        else:
+            jset(jid, pct=min(96,cur+1))
+        if cmdtxt: jset(jid, log_add=f"TOOL\t{alias}: {str(cmdtxt)[:90]}")
+        elif str(txt).strip(): jset(jid, log_add="MSG\t"+str(txt).strip()[:140])
+    rc=proc.wait()
+    if logf: logf.write(f"\n--- silnik awaryjny {alias} zakończył: rc={rc} ({rc_opis(rc)}) ---\n")
+    return rc
 
 def engine_log(jid):
     """Trwały log surowego stdout silnika — JOBS ginie przy restarcie backendu."""
@@ -300,7 +412,7 @@ def run_real(jid, url, hint=None):
     except Exception as e:
         jset(jid, done=True, ok=False, log_add=f"ERR\tNie udało się uruchomić silnika: {e}")
         return
-    tool_n=0
+    tool_n=0; limit_hit=False; started_ts=time.time()
     for line in proc.stdout:
         line=line.strip()
         if not line: continue
@@ -308,6 +420,7 @@ def run_real(jid, url, hint=None):
         try: ev=json.loads(line)
         except Exception: continue
         typ=ev.get("type")
+        if limit_event(ev): limit_hit=True
         if typ=="assistant":
             for c in ev.get("message",{}).get("content",[]):
                 if c.get("type")=="tool_use":
@@ -335,13 +448,33 @@ def run_real(jid, url, hint=None):
             break
     rc=proc.wait()
     if logf:
-        logf.write(f"\n--- silnik zakończył: rc={rc} ({rc_opis(rc)}) ---\n"); logf.close()
+        logf.write(f"\n--- silnik zakończył: rc={rc} ({rc_opis(rc)}) ---\n")
     after=set(_audit_xlsx_files())
     new=sorted(after-before, key=os.path.getmtime, reverse=True)
+    # dostrojenie 2026-09-14: limit Claude (429 / spend limit) bez pliku → łańcuch awaryjny
+    if not new and limit_hit and FALLBACK_CHAIN:
+        jset(jid, log_add="ERR\tClaude: wyczerpany limit (429 / spend limit) — przełączam na silnik awaryjny.")
+        wd=workdir_since(started_ts)
+        for alias in FALLBACK_CHAIN:
+            if not provider_available(alias):
+                jset(jid, log_add=f"INFO\tSilnik {alias} niedostępny (brak binarki/klucza) — pomijam."); continue
+            jset(jid, stage=f"Silnik awaryjny: {alias}", log_add=f"STAGE\tPrzełączam silnik → {alias}"
+                 + (f" (katalog roboczy: {os.path.basename(wd[0])})" if wd else ""))
+            rc=run_engine_generic(jid, alias, fallback_prompt(url, hint, wd), logf)
+            after=set(_audit_xlsx_files())
+            new=sorted(after-before, key=os.path.getmtime, reverse=True)
+            if new:
+                jset(jid, log_add=f"OK\tSilnik awaryjny {alias} wygenerował plik."); break
+            jset(jid, log_add=f"ERR\tSilnik awaryjny {alias} zakończył (rc={rc}) bez pliku xlsx.")
+    if logf: logf.close()
     if new:
         rid=audit_id(new[0])
         jset(jid, stage="Gotowe", pct=100, done=True, ok=True, result_id=rid,
              log_add=f"OK\tAudyt gotowy: {os.path.basename(new[0])}")
+    elif limit_hit:
+        jset(jid, stage="Limit silnika", pct=100, done=True, ok=False,
+             log_add=f"ERR\tWyczerpany limit Claude i żaden silnik awaryjny nie dał pliku — audyt nie powstał, "
+                     f"nic nie powiązano. Log: {LOGS}/job_{jid}.log")
     elif rc==0:
         # ok=False: bez pliku audyt NIE powstał — front nie może "zgadywać" najnowszego
         # audytu (incydent 2026-09-11: powiązał Dygowo z #47).
