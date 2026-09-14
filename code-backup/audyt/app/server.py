@@ -187,8 +187,11 @@ def engine_cmd(prompt, jid, alias=None):
     alias, cfg = engine_config(alias)
     provider, model = cfg["provider"], cfg["model"]
     if provider == "gemini":
+        # dostrojenie 2026-09-14: BEZ --sandbox — sandbox Gemini to kontener docker bez pip/
+        # openpyxl/rclone/PIL (job f7591c2c60e1 utknął na "No module named ensurepip");
+        # limit RAM daje scope systemd, uprawnienia jak claude --dangerously-skip-permissions.
         base=[gemini_bin(), "-p", prompt, "--output-format", "stream-json",
-              "--model", model, "--sandbox", "--approval-mode", "yolo",
+              "--model", model, "--approval-mode", "yolo",
               "--include-directories", BASE]
     elif provider == "codex":
         base=[codex_bin(), "exec", "--json", "--model", model,
