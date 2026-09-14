@@ -18,6 +18,7 @@ LOGS   = os.path.join(BASE, "logs")
 STATIC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
 sys.path.insert(0, os.path.join(BASE, "scripts"))
 import dashboard as D   # reuse parse()
+import audit_guard as GUARD
 
 app = FastAPI(title="Analizator przetargów WSK")
 
@@ -47,6 +48,7 @@ def list_audits():
             krit=sev.get("KRYTYCZNA",0)
             items.append({
                 "id":audit_id(p),
+                "completion":GUARD.status(p),
                 "project":d["meta"].get("project","Audyt przetargowy"),
                 "bzp":d["meta"].get("bzp",""),
                 "termin":d["meta"].get("termin",""),
@@ -67,6 +69,7 @@ def full_audit(aid):
     if not os.path.exists(p): return None
     d=D.parse(p)
     rek=d["meta"].get("rekomendacja","")
+    d["completion"]=GUARD.status(p)
     d["meta"]["id"]=aid
     d["meta"]["bid"]=rek.upper().startswith("SK") and not rek.upper().startswith("NIE")
     try:
@@ -193,7 +196,9 @@ def engine_cmd(prompt, jid, alias=None):
               "--add-dir", BASE, "--skip-git-repo-check", prompt]
     else:
         base=[claude_bin(),"-p",prompt,"--output-format","stream-json","--verbose",
-              "--dangerously-skip-permissions","--model",model]
+              "--dangerously-skip-permissions","--model",model,
+              "--max-budget-usd",os.environ.get("AUDYT_MAX_BUDGET_USD","10"),
+              "--max-turns",os.environ.get("AUDYT_MAX_TURNS","100")]
     if scope_ok():
         return ["systemd-run","--user","--scope","--quiet","--collect",
                 f"--unit=audyt-silnik-{jid}" + (f"-{alias}" if alias in MODEL_ALIASES and alias!=engine_config()[0] else ""),
@@ -380,184 +385,22 @@ def stage_for(text):
         if rx.search(text or ""): return idx
     return None
 
-def run_real(jid, url, hint=None):
-    fid=extract_folder_id(url)
-    jset(jid, log_add=f"INFO\tStart pełnej analizy. Folder ID: {fid}")
-    if hint: jset(jid, log_add=f"INFO\tWskazówka operatora: {str(hint)[:200]}")
-    before=set(_audit_xlsx_files())
-    prompt=(f"Użyj subagenta audyt-przetargowy — uruchom go SYNCHRONICZNIE (run_in_background=false) "
-            f"i czekaj na jego wynik; NIE kończ swojej tury, dopóki plik xlsx audytu nie istnieje w {OUTPUTS}/. "
-            f"Zrób pełny audyt przetargowy folderu Google Drive: "
-            f"{url} . Bez żadnych halucynacji — ilości i ceny wyłącznie z dokumentów/katalogów. "
-            f"Zindeksuj i przeczytaj WSZYSTKIE pliki ze WSZYSTKICH podfolderów (rekurencyjnie, też ZIP-y); "
-            f"pytanie do zamawiającego wolno zadać DOPIERO po przeszukaniu całej dokumentacji — "
-            f"jeśli parametr jest w którymkolwiek pliku/rysunku, użyj go zamiast pytać. "
-            f"Wygeneruj xlsx do {OUTPUTS}/ i przelicz formuły (recalc).")
-    if hint:
-        # dostrojenie 2026-09-14: opcjonalna wskazówka operatora (np. „OCR już gotowe w
-        # katalogu roboczym X — nie pobieraj ponownie") przekazywana z /analyze
-        prompt+=f" WSKAZÓWKA OPERATORA (przekaż subagentowi dosłownie): {str(hint)[:2000]}"
-    cmd=engine_cmd(prompt, jid)
-    logf=engine_log(jid)
-    jset(jid, stage=STAGES[0][0], pct=3,
-         log_add=f"INFO\tUruchamiam silnik (claude headless, limit RAM {ENGINE_MEM_MAX}). "
-                 f"Log: {LOGS}/job_{jid}.log")
-    # dostrojenie 2026-06-10: backend ładuje ANTHROPIC_API_KEY z .env → headless
-    # płacił kredytami API ("Credit balance is too low"). Usuwamy klucz ze środowiska
-    # procesu, żeby claude CLI użył subskrypcji (OAuth z ~/.claude/.credentials.json).
-    env=engine_env()
-    try:
-        proc=subprocess.Popen(cmd, cwd=BASE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                              text=True, bufsize=1, env=env)
-    except Exception as e:
-        jset(jid, done=True, ok=False, log_add=f"ERR\tNie udało się uruchomić silnika: {e}")
-        return
-    tool_n=0; limit_hit=False; started_ts=time.time()
-    for line in proc.stdout:
-        line=line.strip()
-        if not line: continue
-        if logf: logf.write(line+"\n")
-        try: ev=json.loads(line)
-        except Exception: continue
-        typ=ev.get("type")
-        if limit_event(ev): limit_hit=True
-        if typ=="assistant":
-            for c in ev.get("message",{}).get("content",[]):
-                if c.get("type")=="tool_use":
-                    tool_n+=1
-                    blob=(c.get("name","")+" "+json.dumps(c.get("input",{}),ensure_ascii=False))[:400]
-                    si=stage_for(blob)
-                    if si is not None and si<len(STAGES):
-                        name,pct=STAGES[si]
-                        with LOCK: cur=JOBS[jid]["pct"]
-                        jset(jid, stage=name, pct=max(cur,min(pct, cur+3)))
-                    else:
-                        with LOCK: cur=JOBS[jid]["pct"]
-                        jset(jid, pct=min(96, cur+1))
-                    short=c.get("name","tool")
-                    inp=c.get("input",{})
-                    hint=inp.get("file_path") or inp.get("command","") or inp.get("query","")
-                    jset(jid, log_add=f"TOOL\t{short}: {str(hint)[:90]}")
-                elif c.get("type")=="text" and c.get("text","").strip():
-                    txt=c["text"].strip()
-                    si=stage_for(txt)
-                    if si is not None:
-                        jset(jid, stage=STAGES[si][0])
-                    jset(jid, log_add="MSG\t"+txt[:140])
-        elif typ=="result":
-            break
-    rc=proc.wait()
-    if logf:
-        logf.write(f"\n--- silnik zakończył: rc={rc} ({rc_opis(rc)}) ---\n")
-    after=set(_audit_xlsx_files())
-    new=sorted(after-before, key=os.path.getmtime, reverse=True)
-    # dostrojenie 2026-09-14: limit Claude (429 / spend limit) bez pliku → łańcuch awaryjny
-    if not new and limit_hit and FALLBACK_CHAIN:
-        jset(jid, log_add="ERR\tClaude: wyczerpany limit (429 / spend limit) — przełączam na silnik awaryjny.")
-        wd=workdir_since(started_ts)
-        for alias in FALLBACK_CHAIN:
-            if not provider_available(alias):
-                jset(jid, log_add=f"INFO\tSilnik {alias} niedostępny (brak binarki/klucza) — pomijam."); continue
-            jset(jid, stage=f"Silnik awaryjny: {alias}", log_add=f"STAGE\tPrzełączam silnik → {alias}"
-                 + (f" (katalog roboczy: {os.path.basename(wd[0])})" if wd else ""))
-            rc=run_engine_generic(jid, alias, fallback_prompt(url, hint, wd), logf)
-            after=set(_audit_xlsx_files())
-            new=sorted(after-before, key=os.path.getmtime, reverse=True)
-            if new:
-                jset(jid, log_add=f"OK\tSilnik awaryjny {alias} wygenerował plik."); break
-            jset(jid, log_add=f"ERR\tSilnik awaryjny {alias} zakończył (rc={rc}) bez pliku xlsx.")
-    if logf: logf.close()
-    if new:
-        rid=audit_id(new[0])
-        jset(jid, stage="Gotowe", pct=100, done=True, ok=True, result_id=rid,
-             log_add=f"OK\tAudyt gotowy: {os.path.basename(new[0])}")
-    elif limit_hit:
-        jset(jid, stage="Limit silnika", pct=100, done=True, ok=False,
-             log_add=f"ERR\tWyczerpany limit Claude i żaden silnik awaryjny nie dał pliku — audyt nie powstał, "
-                     f"nic nie powiązano. Log: {LOGS}/job_{jid}.log")
-    elif rc==0:
-        # ok=False: bez pliku audyt NIE powstał — front nie może "zgadywać" najnowszego
-        # audytu (incydent 2026-09-11: powiązał Dygowo z #47).
-        jset(jid, stage="Bez pliku", pct=100, done=True, ok=False,
-             log_add=f"ERR\tSilnik zakończył (kod 0), ale NIE powstał nowy plik xlsx — audyt nie został "
-                     f"wygenerowany, nic nie powiązano. Sprawdź {LOGS}/job_{jid}.log i dostęp do Drive.")
-    else:
-        jset(jid, stage="Przerwane", pct=100, done=True, ok=False,
-             log_add=f"ERR\tAudyt przerwany: {rc_opis(rc)}. Log: {LOGS}/job_{jid}.log")
+def run_real(jid, url, hint=None, alias=None):
+    """Bounded execution; publish only a validated artifact belonging to this folder.
+    alias (2026-09-14, router body.model): silnik wybrany wprost (gemini|gpt|opus)."""
+    return GUARD.run(sys.modules[__name__], jid, url, hint, alias=alias)
+
 
 def run_update(jid, aid, url):
-    """Tryb przyrostowy: dograj nowe dokumenty do istniejącego audytu (nie od zera)."""
-    fid=extract_folder_id(url)
-    path=os.path.join(OUTPUTS, aid+".xlsx")
-    if not os.path.exists(path):
-        jset(jid, done=True, ok=False, log_add="ERR\tBrak istniejącego pliku audytu do aktualizacji."); return
-    mtime0=os.path.getmtime(path)
-    jset(jid, log_add=f"INFO\tStart aktualizacji {aid}. Folder ID: {fid}")
-    prompt=(f"Użyj subagenta audyt-przetargowy w TRYBIE AKTUALIZACJI — uruchom go SYNCHRONICZNIE "
-            f"(run_in_background=false) i czekaj na wynik; nie kończ tury przed zapisaniem pliku. "
-            f"Istnieje już audyt: {path} . Folder Google Drive z dokumentacją: {url} . "
-            f"Dograj TYLKO nowe/zmienione dokumenty do istniejącego pliku (nie rób audytu od nowa): "
-            f"oznacz odpowiedzi na pytania, zaktualizuj termin/zakres/wadium jeśli się zmieniły, "
-            f"dodaj zakładkę ZZ_AKTUALIZACJA z opisem co nowego. Nowe pytania do zamawiającego wolno dodać "
-            f"DOPIERO po sprawdzeniu, że odpowiedzi nie ma w żadnym dokumencie (też w starych plikach i OCR rysunków). "
-            # dostrojenie 2026-06-12: aktualizacja WINDY policzyła deltę +149k, ale
-            # wpisała ją tylko jako baner — dashboard czyta LICZBY, więc widełki
-            # zostały stare. Liczby mają być aktualizowane w obu miejscach.
-            f"ŻELAZNA ZASADA WYCENY: jeśli nowe dokumenty zmieniają zakres lub ceny, ZAKTUALIZUJ LICZBY "
-            f"(nie tylko dopisek/baner!): (1) w zakładce 25_KALKULACJA_WSTEPNA dodaj wiersz grupy dla nowych "
-            f"zakresów i przelicz wiersz RAZEM, (2) w 01_STRESZCZENIE_ZARZADCZE zaktualizuj linię "
-            f"'WARTOŚĆ SZACUNKOWA INWESTYCJI: X–Y mln PLN netto' — dashboard parsuje te dwa miejsca. "
-            f"Starą wartość zostaw w dopisku '[było: ...]'. "
-            f"Nadpisz ten sam plik i przelicz formuły (recalc).")
-    cmd=engine_cmd(prompt, jid)
-    logf=engine_log(jid)
-    jset(jid, stage=STAGES[0][0], pct=3,
-         log_add=f"INFO\tUruchamiam silnik (tryb aktualizacji, limit RAM {ENGINE_MEM_MAX}). "
-                 f"Log: {LOGS}/job_{jid}.log")
-    # jak w run_real: bez ANTHROPIC_API_KEY → subskrypcja zamiast kredytów API
-    env=engine_env()
-    try:
-        proc=subprocess.Popen(cmd, cwd=BASE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                              text=True, bufsize=1, env=env)
-    except Exception as e:
-        jset(jid, done=True, ok=False, log_add=f"ERR\tNie udało się uruchomić silnika: {e}"); return
-    for line in proc.stdout:
-        line=line.strip()
-        if not line: continue
-        if logf: logf.write(line+"\n")
-        try: ev=json.loads(line)
-        except Exception: continue
-        typ=ev.get("type")
-        if typ=="assistant":
-            for c in ev.get("message",{}).get("content",[]):
-                if c.get("type")=="tool_use":
-                    blob=(c.get("name","")+" "+json.dumps(c.get("input",{}),ensure_ascii=False))[:400]
-                    si=stage_for(blob)
-                    with LOCK: cur=JOBS[jid]["pct"]
-                    if si is not None and si<len(STAGES):
-                        jset(jid, stage=STAGES[si][0], pct=max(cur,min(STAGES[si][1], cur+4)))
-                    else:
-                        jset(jid, pct=min(96, cur+2))
-                    inp=c.get("input",{})
-                    hint=inp.get("file_path") or inp.get("command","") or inp.get("query","")
-                    jset(jid, log_add=f"TOOL\t{c.get('name','tool')}: {str(hint)[:90]}")
-                elif c.get("type")=="text" and c.get("text","").strip():
-                    jset(jid, log_add="MSG\t"+c["text"].strip()[:140])
-        elif typ=="result":
-            break
-    rc=proc.wait()
-    if logf:
-        logf.write(f"\n--- silnik zakończył: rc={rc} ({rc_opis(rc)}) ---\n"); logf.close()
-    mtime1=os.path.getmtime(path) if os.path.exists(path) else mtime0
-    if mtime1>mtime0:
-        jset(jid, stage="Gotowe", pct=100, done=True, ok=True, result_id=aid,
-             log_add="OK\tAudyt zaktualizowany (dograne nowe dokumenty).")
-    elif rc==0:
-        jset(jid, stage="Zakończono", pct=100, done=True, ok=True, result_id=aid,
-             log_add="OK\tSilnik zakończył bez błędu, plik bez zmian — możliwe że brak nowych dokumentów w folderze.")
-    else:
-        jset(jid, stage="Przerwane", pct=100, done=True, ok=False, result_id=aid,
-             log_add=f"ERR\tAktualizacja przerwana: {rc_opis(rc)}. Log: {LOGS}/job_{jid}.log")
+    """Incremental work uses the same bounded, isolated publication path."""
+    if os.path.basename(aid)!=aid or ".." in aid:
+        jset(jid,done=True,ok=False,stage="Nieprawidłowy audyt"); return
+    path=os.path.join(OUTPUTS,aid+".xlsx")
+    if not os.path.isfile(path):
+        jset(jid,done=True,ok=False,stage="Brak pliku audytu"); return
+    mode="Dokończ brakujące części" if GUARD.status(path).get("state")=="partial" else "TRYB AKTUALIZACJI: analizuj tylko nowe i zmienione dokumenty, zachowaj istniejące ustalenia i ich źródła"
+    return GUARD.run(sys.modules[__name__],jid,url,mode+". Dotychczasowy raport: "+path,source=path)
+
 
 def run_paczka(jid, prompt, wynik_dir):
     """Paczka ofertowa: agent wypełnia załączniki SWZ danymi firm i odkłada do Drive."""

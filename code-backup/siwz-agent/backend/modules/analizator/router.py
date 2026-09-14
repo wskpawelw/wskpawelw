@@ -502,9 +502,9 @@ def _link_result_to_project(jid: str, url: str, pid: int):
         print("link result err", e, file=sys.stderr)
 
 
-def _run_then_link(tgt, jid: str, url: str, pid, hint=None):
-    if hint and tgt is ENG.run_real:
-        tgt(jid, url, hint)
+def _run_then_link(tgt, jid: str, url: str, pid, hint=None, alias=None):
+    if tgt is ENG.run_real and (hint or alias):
+        tgt(jid, url, hint, alias)   # alias: model=gemini|gpt|opus wprost (2026-09-14)
     else:
         tgt(jid, url)
     _link_result_to_project(jid, url, pid)
@@ -520,14 +520,17 @@ async def api_analyze(request: Request, user=Depends(get_current_user)):
     except (TypeError, ValueError):
         pid = None
     hint = (str(body.get("hint") or "")).strip()[:2000] or None   # wskazówka operatora dla silnika
+    alias = (str(body.get("model") or "")).strip().lower() or None   # opus|gemini|gpt — wprost, omija limit Claude
+    if alias and alias not in ENG.MODEL_ALIASES:
+        return JSONResponse({"error": "model: opus | gemini | gpt"}, status_code=400)
     if not url:
         return JSONResponse({"error": "Podaj link do folderu Google Drive."}, status_code=400)
     jid = uuid.uuid4().hex[:12]
     ENG.jset(jid, pct=0, stage="Inicjalizacja", started=int(time.time()), mode=mode, url=url,
              projekt_id=pid)
     tgt = ENG.run_real if mode == "real" else ENG.run_demo
-    threading.Thread(target=_run_then_link, args=(tgt, jid, url, pid, hint), daemon=True).start()
-    return JSONResponse({"job_id": jid, "mode": mode, "projekt_id": pid})
+    threading.Thread(target=_run_then_link, args=(tgt, jid, url, pid, hint, alias), daemon=True).start()
+    return JSONResponse({"job_id": jid, "mode": mode, "projekt_id": pid, "model": alias})
 
 # SSE — EventSource nie umie nagłówków, więc token w query (walidowany ręcznie)
 @router.get("/api/analizator/progress/{jid}")
@@ -665,7 +668,7 @@ def _ensure_sheet(aid):
 
 @router.get("/api/analizator/sheet/{aid}")
 def api_sheet(aid: str, user=Depends(get_current_user)):
-    if not re.match(r"^AUDYT_[A-Za-z0-9_]+$", aid):
+    if not re.fullmatch(r"AUDYT_[A-Za-z0-9_.-]+", aid) or ".." in aid:
         return JSONResponse({"error": "Zła nazwa audytu."}, status_code=400)
     try:
         url = _ensure_sheet(aid)
@@ -766,7 +769,7 @@ def api_files_tree(aid: str, user=Depends(get_current_user)):
     postępowania pokazuje realny folder audytu zamiast szczątkowej tabeli
     z systemu."""
     import time as _t
-    if not re.match(r"^AUDYT_[A-Za-z0-9_]+$", aid):
+    if not re.fullmatch(r"AUDYT_[A-Za-z0-9_.-]+", aid) or ".." in aid:
         return JSONResponse({"error": "Zła nazwa audytu."}, status_code=400)
     c = _files_tree_cache.get(aid)
     if c and _t.time() - c[0] < 300:
@@ -831,7 +834,7 @@ def api_files_tree(aid: str, user=Depends(get_current_user)):
 
 @router.get("/api/analizator/docfile/{aid}")
 def api_docfile(aid: str, q: str = Query(""), user=Depends(get_current_user)):
-    if not re.match(r"^AUDYT_[A-Za-z0-9_]+$", aid):
+    if not re.fullmatch(r"AUDYT_[A-Za-z0-9_.-]+", aid) or ".." in aid:
         return JSONResponse({"error": "Zła nazwa audytu."}, status_code=400)
     try:
         res=_resolve_doc(aid, q)
@@ -922,7 +925,7 @@ def _ensure_pismo(aid):
 
 @router.get("/api/analizator/pismo/{aid}")
 def api_pismo(aid: str, user=Depends(get_current_user)):
-    if not re.match(r"^AUDYT_[A-Za-z0-9_]+$", aid):
+    if not re.fullmatch(r"AUDYT_[A-Za-z0-9_.-]+", aid) or ".." in aid:
         return JSONResponse({"error": "Zła nazwa audytu."}, status_code=400)
     try:
         res = _ensure_pismo(aid)
@@ -941,7 +944,7 @@ _SA_EMAIL = "crewai-wsk@erp-bud2.iam.gserviceaccount.com"
 
 @router.post("/api/analizator/source/{aid}")
 async def api_set_source(aid: str, request: Request, user=Depends(get_current_user)):
-    if not re.match(r"^AUDYT_[A-Za-z0-9_]+$", aid):
+    if not re.fullmatch(r"AUDYT_[A-Za-z0-9_.-]+", aid) or ".." in aid:
         return JSONResponse({"error": "Zła nazwa audytu."}, status_code=400)
     body = await request.json()
     url = (body.get("url") or "").strip()
@@ -977,7 +980,7 @@ async def api_set_source(aid: str, request: Request, user=Depends(get_current_us
 @router.post("/api/analizator/update/{aid}")
 def api_update(aid: str, user=Depends(get_current_user)):
     """Tryb przyrostowy — dograj nowe dokumenty z podpiętego folderu do istniejącego audytu."""
-    if not re.match(r"^AUDYT_[A-Za-z0-9_]+$", aid):
+    if not re.fullmatch(r"AUDYT_[A-Za-z0-9_.-]+", aid) or ".." in aid:
         return JSONResponse({"error": "Zła nazwa audytu."}, status_code=400)
     src = _load_sources().get(aid)
     if not src or not src.get("folder_id"):
@@ -985,5 +988,8 @@ def api_update(aid: str, user=Depends(get_current_user)):
     url = "https://drive.google.com/drive/folders/%s" % src["folder_id"]
     jid = uuid.uuid4().hex[:12]
     ENG.jset(jid, pct=0, stage="Inicjalizacja", started=int(time.time()), mode="update", url=url)
-    threading.Thread(target=ENG.run_update, args=(jid, aid, url), daemon=True).start()
+    def run_and_link():
+        ENG.run_update(jid,aid,url)
+        _link_result_to_project(jid,url,_load_links().get(aid))
+    threading.Thread(target=run_and_link, daemon=True).start()
     return JSONResponse({"job_id": jid})
